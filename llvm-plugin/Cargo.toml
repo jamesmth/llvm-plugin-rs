@@ -1,0 +1,24 @@
+[package]
+name = "llvm-plugin"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["macros"]
+macros = ["llvm-plugin-macros"]
+
+llvm10-0 = ["inkwell/llvm10-0-no-llvm-linking"]
+llvm11-0 = ["inkwell/llvm11-0-no-llvm-linking"]
+llvm12-0 = ["inkwell/llvm12-0-no-llvm-linking"]
+llvm13-0 = ["inkwell/llvm13-0-no-llvm-linking"]
+llvm14-0 = ["inkwell/llvm14-0-no-llvm-linking"]
+
+[dependencies]
+inkwell = { git = "https://github.com/jamesmth/inkwell", branch = "expose-raw-ptr", features = ["internal-getters"] }
+llvm-plugin-macros = { path = "../llvm-plugin-macros", optional = true }
+
+[build-dependencies]
+cc = "1"
+lazy_static = "1"
+regex = "1"
+semver = "1"
