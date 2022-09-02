@@ -7,19 +7,36 @@ fn main() {
         .include(includedir.trim())
         .file("cpp/ffi.cc");
 
+    #[cfg(target_env = "msvc")]
+    build.flag_if_supported("/std:c++17");
+    #[cfg(not(target_env = "msvc"))]
     build.flag_if_supported("-std=c++17");
 
     let has_rtti = llvm_sys::llvm_config("--has-rtti");
     if has_rtti.trim() == "YES" {
+        #[cfg(target_env = "msvc")]
+        build.flag_if_supported("/GR-");
+        #[cfg(not(target_env = "msvc"))]
         build.flag_if_supported("-fno-rtti");
     }
 
     build.warnings(false);
     build.compile("llvm-plugin-cpp");
 
-    let libdir = llvm_sys::llvm_config("--libdir");
-    println!("cargo:rustc-link-search=native={}", libdir.trim());
-    println!("cargo:rustc-link-lib=dylib=LLVM");
+    #[cfg(target_os = "linux")]
+    {
+        let libdir = llvm_sys::llvm_config("--libdir");
+        println!("cargo:rustc-link-search=native={}", libdir.trim());
+        println!("cargo:rustc-link-lib=dylib=LLVM");
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        let libdir = llvm_sys::llvm_config("--libdir");
+        println!("cargo:rustc-link-search=native={}", libdir.trim());
+        println!("cargo:rustc-link-lib=dylib=LLVM-C");
+        println!("cargo:rustc-link-lib=dylib=opt");
+    }
 
     println!("cargo:rerun-if-changed=cpp");
 }
