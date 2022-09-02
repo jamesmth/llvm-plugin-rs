@@ -1,0 +1,98 @@
+name: MacOS Test Suite
+
+on: [push, pull_request]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  macos-tests:
+    name: "LLVM ${{ matrix.llvm-version[0] }} MacOS"
+    runs-on: macos-latest
+    env:
+      LLVM_INSTALL_PATH: ~/llvm
+      PLUGINS_PATH: tests/plugins/target/debug
+    strategy:
+      matrix:
+        llvm-version:
+          - ["10", "10.0.0", "10-0"]
+          - ["11", "11.0.0", "11-0"]
+          - ["12", "12.0.0", "12-0"]
+          - ["13", "13.0.0", "13-0"]
+          - ["14", "14.0.0", "14-0"]
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Setup LLVM Installation Path
+        run: |
+          mkdir ${{ env.LLVM_INSTALL_PATH }}
+          echo "$HOME/llvm/bin" >> $GITHUB_PATH
+
+      - name: Check LLVM Artifacts In Cache
+        id: cache-llvm
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.LLVM_INSTALL_PATH }}/bin/llvm-config
+            ${{ env.LLVM_INSTALL_PATH }}/bin/opt
+            ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM.dylib
+            ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM-C.dylib
+            ${{ env.LLVM_INSTALL_PATH }}/include
+          key: ${{ runner.os }}-llvm-${{ matrix.llvm-version[0] }}
+
+      - name: Download LLVM Sources
+        if: steps.cache-llvm.outputs.cache-hit != 'true'
+        run: |
+          wget --user-agent='GithubCI' -O llvm.src.tar.xz https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ matrix.llvm-version[1] }}/llvm-${{ matrix.llvm-version[1] }}.src.tar.xz
+          tar xf llvm.src.tar.xz
+
+      - name: Install Ninja Generator
+        if: steps.cache-llvm.outputs.cache-hit != 'true'
+        uses: seanmiddleditch/gha-setup-ninja@master
+        with:
+          version: 1.11.0
+
+      - name: Compile & Install LLVM
+        if: steps.cache-llvm.outputs.cache-hit != 'true'
+        run: |
+          cd llvm-${{ matrix.llvm-version[1] }}.src
+          mkdir build
+          cd build
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ env.LLVM_INSTALL_PATH }} \
+            -DLLVM_LINK_LLVM_DYLIB=ON \
+            -DLLVM_TARGETS_TO_BUILD=X86 \
+            -DLLVM_ENABLE_TERMINFO=OFF \
+            -DLLVM_ENABLE_ZLIB=OFF \
+            -DLLVM_INCLUDE_BENCHMARKS=OFF \
+            -DLLVM_INCLUDE_DOCS=OFF \
+            -DLLVM_INCLUDE_EXAMPLES=OFF \
+            -DLLVM_INCLUDE_GO_TESTS=OFF \
+            -DLLVM_INCLUDE_RUNTIMES=OFF \
+            -DLLVM_INCLUDE_TESTS=OFF \
+            -DLLVM_INCLUDE_UTILS=OFF \
+            -G Ninja
+          ninja install
+
+      - name: Build Tests
+        run: cargo b --manifest-path tests/plugins/Cargo.toml -p plugin* --features llvm${{ matrix.llvm-version[2] }}
+
+      - name: Run Tests
+        run: |
+          opt \
+            --load-pass-plugin="${{ env.PLUGINS_PATH }}/libplugin1.dylib" \
+            --passes="mpass,function(fpass)" \
+            tests/test.ll \
+            -disable-output
+          opt \
+            --load-pass-plugin="${{ env.PLUGINS_PATH }}/libplugin2.dylib" \
+            --passes="mpass1,mpass2" \
+            tests/test.ll \
+            -disable-output
+          opt \
+            --load-pass-plugin="${{ env.PLUGINS_PATH }}/libplugin3.dylib" \
+            --passes="mpass1,mpass2" \
+            tests/test.ll \
+            -disable-output

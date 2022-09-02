@@ -23,7 +23,7 @@ fn main() {
     build.warnings(false);
     build.compile("llvm-plugin-cpp");
 
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
         let libdir = llvm_sys::llvm_config("--libdir");
         println!("cargo:rustc-link-search=native={}", libdir.trim());
