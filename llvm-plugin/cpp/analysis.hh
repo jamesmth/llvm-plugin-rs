@@ -33,7 +33,10 @@ struct Analysis : public llvm::AnalysisInfoMixin<Analysis<IR>> {
     return {Ptr, Deleter};
   }
 
-  static auto ID() -> llvm::AnalysisKey * { return CurrentKey; }
+  static auto ID() // NOLINT(readability-identifier-naming)
+      -> llvm::AnalysisKey * {
+    return CurrentKey;
+  }
 
   static inline auto AnalysisMap =
       std::unordered_map<llvm::AnalysisKey *, Entrypoint>{};

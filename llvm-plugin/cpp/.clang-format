@@ -1,0 +1,2 @@
+# https://github.com/llvm/llvm-project/blob/main/.clang-format
+BasedOnStyle: LLVM

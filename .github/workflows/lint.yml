@@ -1,0 +1,68 @@
+name: Lint
+
+on: [push, pull_request]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  format:
+    name: "Formatting Check"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      
+      - name: Clang-Format Formatting
+        uses: jidicula/clang-format-action@v4.8.0
+        with:
+          check-path: llvm-plugin/cpp
+
+      - name: Rustfmt Formatting
+        run: |
+          cargo fmt --check --all
+
+  lint:
+    name: "Lint Check"
+    runs-on: ubuntu-latest
+    env:
+      LLVM_INSTALL_PATH: ~/llvm
+      LLVM_VERSION: "14"
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Setup LLVM Installation Path
+        run: |
+          mkdir ${{ env.LLVM_INSTALL_PATH }}
+          echo "$HOME/llvm/bin" >> $GITHUB_PATH
+
+      - name: Check LLVM Artifacts In Cache
+        id: cache-llvm
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.LLVM_INSTALL_PATH }}/bin/llvm-config
+            ${{ env.LLVM_INSTALL_PATH }}/bin/opt
+            ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM-${{ env.LLVM_VERSION }}.so
+            ${{ env.LLVM_INSTALL_PATH }}/include
+          key: ${{ runner.os }}-llvm-${{ env.LLVM_VERSION }}
+
+      - name: LLVM Artifacts Missing
+        if: steps.cache-llvm.outputs.cache-hit != 'true'
+        run: false
+
+      - name: Clang-Tidy Lint
+        run: |
+          clang-tidy \
+            llvm-plugin/cpp/*.{cc,hh} \
+            --warnings-as-errors='*,-llvm-header-guard' \
+            -- -I"$HOME/llvm/include" -std=c++17
+
+      - name: Clippy Lint
+        run: |
+          ln -s libLLVM-${{ env.LLVM_VERSION }}.so ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM.so
+          cargo clippy \
+            -p llvm-plugin \
+            --features llvm${{ env.LLVM_VERSION }}-0 \
+            -- -D warnings
