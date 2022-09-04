@@ -20,6 +20,18 @@ extern "C" {
         module: *mut c_void,
     ) -> *mut c_void;
 
+    pub fn getFunctionAnalysisCachedResult(
+        manager: *mut c_void,
+        id: AnalysisKey,
+        function: *mut c_void,
+    ) -> *mut c_void;
+
+    pub fn getModuleAnalysisCachedResult(
+        manager: *mut c_void,
+        id: AnalysisKey,
+        module: *mut c_void,
+    ) -> *mut c_void;
+
     fn registerModulePass(name: *const u8, name_len: usize, entrypoint: PassEntrypointFn);
 
     fn registerFunctionPass(name: *const u8, name_len: usize, entrypoint: PassEntrypointFn);
@@ -47,6 +59,22 @@ pub(super) fn get_function_analysis_result(
     function: *mut c_void,
 ) -> *mut c_void {
     unsafe { getFunctionAnalysisResult(manager, id, function) }
+}
+
+pub(super) fn get_module_analysis_cached_result(
+    manager: *mut c_void,
+    id: AnalysisKey,
+    module: *mut c_void,
+) -> *mut c_void {
+    unsafe { getModuleAnalysisCachedResult(manager, id, module) }
+}
+
+pub(super) fn get_function_analysis_cached_result(
+    manager: *mut c_void,
+    id: AnalysisKey,
+    function: *mut c_void,
+) -> *mut c_void {
+    unsafe { getFunctionAnalysisCachedResult(manager, id, function) }
 }
 
 #[doc(hidden)]

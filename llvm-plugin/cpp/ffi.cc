@@ -27,6 +27,24 @@ auto getFunctionAnalysisResult(llvm::FunctionAnalysisManager &AM,
   return Result.get();
 }
 
+auto getModuleAnalysisCachedResult(llvm::ModuleAnalysisManager &AM,
+                                   llvm::AnalysisKey *Key, llvm::Module &Module)
+    -> void * {
+  const auto Lock = std::lock_guard{Analysis<ModuleIR>::MutexCurrentKey};
+  Analysis<ModuleIR>::CurrentKey = Key;
+  auto *Result = AM.getCachedResult<Analysis<ModuleIR>>(Module);
+  return Result == nullptr ? nullptr : Result->get();
+}
+
+auto getFunctionAnalysisCachedResult(llvm::FunctionAnalysisManager &AM,
+                                     llvm::AnalysisKey *Key,
+                                     llvm::Function &Function) -> void * {
+  const auto Lock = std::lock_guard{Analysis<FunctionIR>::MutexCurrentKey};
+  Analysis<FunctionIR>::CurrentKey = Key;
+  auto *Result = AM.getCachedResult<Analysis<FunctionIR>>(Function);
+  return Result == nullptr ? nullptr : Result->get();
+}
+
 auto registerModulePass(const char *Name, size_t NameLen,
                         Pass<ModuleIR>::Entrypoint Entrypoint) -> void {
   assert(Name != nullptr && "Pass name cannot be NULL");

@@ -97,3 +97,8 @@ jobs:
             --passes="mpass1,mpass2" \
             tests/test.ll \
             -disable-output
+          opt \
+            --load-pass-plugin="${{ env.PLUGINS_PATH }}/libplugin4.so" \
+            --passes="mpass,function(fpass)" \
+            tests/test.ll \
+            -disable-output

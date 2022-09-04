@@ -49,6 +49,38 @@ impl FunctionAnalysisManager {
             Box::leak(Box::from_raw(res.cast()))
         }
     }
+
+    /// Returns the result of the analysis on a given function IR.
+    ///
+    /// If the result is not in cache, `None` is returned. Otherwise,
+    /// the result is directly returned from cache.
+    ///
+    /// This function never triggers the execution of an analysis.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the given analysis wasn't registered (happens if the `#[analysis]`
+    /// attribute wasn't used), or if this function was called within the given analysis
+    /// itself.
+    pub fn get_cached_result<'a, A>(&self, function: &FunctionValue<'a>) -> Option<&A::Result>
+    where
+        A: crate::LlvmFunctionAnalysis,
+    {
+        let id = A::id();
+        assert!(
+            !matches!(self.from_analysis_id, Some(n) if id == n),
+            "Analysis cannot request its own result"
+        );
+
+        unsafe {
+            let res = crate::get_function_analysis_cached_result(
+                self.inner,
+                id,
+                function.as_value_ref().cast(),
+            );
+            (!res.is_null()).then_some(Box::leak(Box::from_raw(res.cast())))
+        }
+    }
 }
 
 /// Struct allowing to query the pass manager for the result of
@@ -80,7 +112,7 @@ impl ModuleAnalysisManager {
     /// Panics if the given analysis wasn't registered (happens if the `#[analysis]`
     /// attribute wasn't used), or if this function was called within the given analysis
     /// itself.
-    pub fn get_result<'a, A>(&self, module: &Module<'a>) -> &'static A::Result
+    pub fn get_result<'a, A>(&self, module: &Module<'a>) -> &A::Result
     where
         A: crate::LlvmModuleAnalysis,
     {
@@ -94,6 +126,38 @@ impl ModuleAnalysisManager {
             let res =
                 crate::get_module_analysis_result(self.inner, A::id(), module.get_ref().cast());
             Box::leak(Box::from_raw(res.cast()))
+        }
+    }
+
+    /// Returns the result of the analysis on a given module IR.
+    ///
+    /// If the result is not in cache, `None` is returned. Otherwise,
+    /// the result is directly returned from cache.
+    ///
+    /// This function never triggers the execution of an analysis.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the given analysis wasn't registered (happens if the `#[analysis]`
+    /// attribute wasn't used), or if this function was called within the given analysis
+    /// itself.
+    pub fn get_cached_result<'a, A>(&self, module: &Module<'a>) -> Option<&A::Result>
+    where
+        A: crate::LlvmModuleAnalysis,
+    {
+        let id = A::id();
+        assert!(
+            !matches!(self.from_analysis_id, Some(n) if id == n),
+            "Analysis cannot request its own result"
+        );
+
+        unsafe {
+            let res = crate::get_module_analysis_cached_result(
+                self.inner,
+                A::id(),
+                module.get_ref().cast(),
+            );
+            (!res.is_null()).then_some(Box::leak(Box::from_raw(res.cast())))
         }
     }
 }
