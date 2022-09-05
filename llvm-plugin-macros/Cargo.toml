@@ -1,7 +1,14 @@
 [package]
 name = "llvm-plugin-macros"
 version = "0.1.0"
+authors = ["James Smith <jamesmth@proton.me>"]
+categories = ["development-tools::ffi"]
+description = "Proc macros for llvm-plugin"
 edition = "2021"
+keywords = ["llvm", "pass", "safe", "wrapper"]
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/jamesmth/llvm-plugin-rs"
 
 [lib]
 proc-macro = true

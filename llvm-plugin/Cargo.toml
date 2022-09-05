@@ -1,7 +1,15 @@
 [package]
 name = "llvm-plugin"
 version = "0.1.0"
+authors = ["James Smith <jamesmth@proton.me>"]
+categories = ["development-tools::ffi"]
+description = "A wrapper for easily implementing out-of-source-tree LLVM plugins in Rust."
+documentation = "https://docs.rs/llvm_plugin/"
 edition = "2021"
+keywords = ["llvm", "pass", "safe", "wrapper"]
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/jamesmth/llvm-plugin-rs"
 
 [features]
 default = ["macros"]
@@ -14,8 +22,8 @@ llvm13-0 = ["inkwell/llvm13-0-no-llvm-linking"]
 llvm14-0 = ["inkwell/llvm14-0-no-llvm-linking"]
 
 [dependencies]
-inkwell = { git = "https://github.com/jamesmth/inkwell", branch = "expose-raw-ptr", features = ["internal-getters"] }
-llvm-plugin-macros = { path = "../llvm-plugin-macros", optional = true }
+inkwell = { package = "llvm-plugin-inkwell", version = "0.1", features = ["internal-getters"] }
+llvm-plugin-macros = { path = "../llvm-plugin-macros", version = "0.1", optional = true }
 
 [build-dependencies]
 cc = "1"
