@@ -99,6 +99,9 @@ pub use inkwell;
 use inkwell::module::Module;
 use inkwell::values::FunctionValue;
 
+/// Utilities.
+pub mod utils;
+
 /// Enum specifying whether analyses on an IR unit are not preserved due
 /// to the modification of such unit by a transformation pass.
 #[repr(C)]
