@@ -64,5 +64,6 @@ jobs:
           ln -s libLLVM-${{ env.LLVM_VERSION }}.so ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM.so
           cargo clippy \
             -p llvm-plugin \
-            --features llvm${{ env.LLVM_VERSION }}-0 \
+            --no-default-features \
+            --features target-x86,llvm${{ env.LLVM_VERSION }}-0 \
             -- -D warnings

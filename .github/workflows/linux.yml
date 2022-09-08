@@ -78,7 +78,11 @@ jobs:
       - name: Build Tests
         run: |
           ln -s libLLVM-${{ matrix.llvm-version[0] }}.so ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM.so || true
-          cargo b --manifest-path tests/plugins/Cargo.toml -p plugin* --features llvm${{ matrix.llvm-version[2] }}
+          cargo b \
+            --manifest-path tests/plugins/Cargo.toml \
+            -p plugin* \
+            --no-default-features \
+            --features target-x86,llvm${{ matrix.llvm-version[2] }}
 
       - name: Run Tests
         run: |

@@ -15,7 +15,7 @@ repository = "https://github.com/jamesmth/llvm-plugin-rs"
 features = ["llvm11-0"] # any version >10 will do
 
 [features]
-default = ["macros"]
+default = ["macros", "target-all"]
 macros = ["llvm-plugin-macros"]
 
 llvm10-0 = ["inkwell/llvm10-0-no-llvm-linking"]
@@ -23,6 +23,24 @@ llvm11-0 = ["inkwell/llvm11-0-no-llvm-linking"]
 llvm12-0 = ["inkwell/llvm12-0-no-llvm-linking"]
 llvm13-0 = ["inkwell/llvm13-0-no-llvm-linking"]
 llvm14-0 = ["inkwell/llvm14-0-no-llvm-linking"]
+
+target-x86 = ["inkwell/target-x86"]
+target-arm = ["inkwell/target-arm"]
+target-mips = ["inkwell/target-mips"]
+target-aarch64 = ["inkwell/target-aarch64"]
+target-amdgpu = ["inkwell/target-amdgpu"]
+target-systemz = ["inkwell/target-systemz"]
+target-hexagon = ["inkwell/target-hexagon"]
+target-nvptx = ["inkwell/target-nvptx"]
+target-msp430 = ["inkwell/target-msp430"]
+target-xcore = ["inkwell/target-xcore"]
+target-powerpc = ["inkwell/target-powerpc"]
+target-sparc = ["inkwell/target-sparc"]
+target-bpf = ["inkwell/target-bpf"]
+target-lanai = ["inkwell/target-lanai"]
+target-webassembly = ["inkwell/target-webassembly"]
+target-riscv = ["inkwell/target-riscv"]
+target-all = ["inkwell/target-all"]
 
 [dependencies]
 inkwell = { package = "llvm-plugin-inkwell", version = "0.1", features = ["internal-getters"] }
