@@ -11,6 +11,9 @@ license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/jamesmth/llvm-plugin-rs"
 
+[package.metadata.docs.rs]
+features = ["llvm11-0"] # any version >10 will do
+
 [features]
 default = ["macros"]
 macros = ["llvm-plugin-macros"]

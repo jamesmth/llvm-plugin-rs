@@ -225,3 +225,13 @@ pub use llvm_plugin_macros::*;
 // See https://github.com/jamesmth/llvm-plugin-rs/issues/1
 #[cfg(all(target_os = "windows", feature = "llvm10-0"))]
 compile_error!("LLVM 10 not supported on Windows");
+
+// Taken from llvm-sys source code.
+//
+// Since we use `llvm-no-linking`, `llvm-sys` won't trigger that error
+// for us, so we need to take care of it ourselves.
+#[cfg(all(not(doc), LLVM_NOT_FOUND))]
+compile_error!(
+    "No suitable version of LLVM was found system-wide or pointed
+       to by LLVM_PLUGIN_PREFIX."
+);

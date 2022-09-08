@@ -1,4 +1,9 @@
 fn main() {
+    if llvm_sys::LLVM_CONFIG_PATH.is_none() {
+        println!("cargo:rustc-cfg=LLVM_NOT_FOUND");
+        return;
+    }
+
     let includedir = llvm_sys::llvm_config("--includedir");
 
     let mut build = cc::Build::new();
@@ -63,7 +68,7 @@ mod llvm_sys {
 
     lazy_static! {
         /// Filesystem path to an llvm-config binary for the correct version.
-        static ref LLVM_CONFIG_PATH: PathBuf = locate_llvm_config();
+        pub static ref LLVM_CONFIG_PATH: Option<PathBuf> = locate_llvm_config();
     }
 
     /// Try to find a version of llvm-config that is compatible with this crate.
@@ -74,7 +79,7 @@ mod llvm_sys {
     /// If $LLVM_PLUGIN_PREFIX is NOT set, then look for llvm-config in $PATH.
     ///
     /// Returns None on failure.
-    fn locate_llvm_config() -> PathBuf {
+    fn locate_llvm_config() -> Option<PathBuf> {
         let prefix = env::var_os(ENV_LLVM_PREFIX)
             .map(|p| PathBuf::from(p).join("bin"))
             .unwrap_or_else(PathBuf::new);
@@ -85,7 +90,7 @@ mod llvm_sys {
                 // does it for us
                 Ok(_) => {
                     // Compatible version found. Nice.
-                    return binary_name;
+                    return Some(binary_name);
                 }
                 Err(ref e) if e.kind() == ErrorKind::NotFound => {
                     // Looks like we failed to execute any llvm-config. Keep
@@ -96,7 +101,7 @@ mod llvm_sys {
             }
         }
 
-        panic!("llvm-config not found")
+        None
     }
 
     /// Return an iterator over possible names for the llvm-config binary.
@@ -112,7 +117,7 @@ mod llvm_sys {
         } else if cfg!(feature = "llvm14-0") {
             (14, 0)
         } else {
-            panic!("Missing llvm* feature");
+            return vec![].into_iter();
         };
 
         let mut base_names = vec![
@@ -140,8 +145,8 @@ mod llvm_sys {
     /// Lazily searches for or compiles LLVM as configured by the environment
     /// variables.
     pub fn llvm_config(arg: &str) -> String {
-        llvm_config_ex(&*LLVM_CONFIG_PATH.clone(), arg)
-            .expect("Surprising failure from llvm-config")
+        let path = LLVM_CONFIG_PATH.as_ref().unwrap();
+        llvm_config_ex(path, arg).expect("Surprising failure from llvm-config")
     }
 
     /// Invoke the specified binary as llvm-config.
