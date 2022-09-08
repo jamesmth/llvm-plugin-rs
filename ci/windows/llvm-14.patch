@@ -2,14 +2,15 @@ diff --git a/utils/extract_symbols.py b/utils/extract_symbols.py
 index 0f8e8ba..dc5c4d6 100755
 --- a/utils/extract_symbols.py
 +++ b/utils/extract_symbols.py
-@@ -135,6 +135,12 @@ def aix_is_32bit_windows(lib):
+@@ -135,6 +135,13 @@ def aix_is_32bit_windows(lib):
  # identifier/type mangling we can decide which symbols could possibly be
  # required and which we can discard.
  def should_keep_microsoft_symbol(symbol, calling_convention_decoration):
 +    # required global variables
 +    if (symbol == '?SetKey@?$AllAnalysesOn@VModule@llvm@@@llvm@@0UAnalysisSetKey@2@A'
 +        or symbol == '?SetKey@?$AllAnalysesOn@VFunction@llvm@@@llvm@@0UAnalysisSetKey@2@A'
-+        or symbol == '?AllAnalysesKey@PreservedAnalyses@llvm@@0UAnalysisSetKey@2@A'):
++        or symbol == '?AllAnalysesKey@PreservedAnalyses@llvm@@0UAnalysisSetKey@2@A'
++        or symbol == '?Key@?$InnerAnalysisManagerProxy@V?$AnalysisManager@VFunction@llvm@@$$V@llvm@@VModule@2@$$V@llvm@@0UAnalysisKey@2@A'):
 +        return symbol
 +
      # Keep unmangled (i.e. extern "C") names

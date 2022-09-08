@@ -86,7 +86,7 @@ diff --git a/utils/extract_symbols.py b/utils/extract_symbols.py
 index 7cdcce1..1cc52be 100755
 --- a/utils/extract_symbols.py
 +++ b/utils/extract_symbols.py
-@@ -120,6 +120,13 @@ def readobj_is_32bit_windows(lib):
+@@ -120,6 +120,14 @@ def readobj_is_32bit_windows(lib):
  # identifier/type mangling we can decide which symbols could possibly be
  # required and which we can discard.
  def should_keep_microsoft_symbol(symbol, calling_convention_decoration):
@@ -94,7 +94,8 @@ index 7cdcce1..1cc52be 100755
 +    if (symbol == '?SetKey@?$AllAnalysesOn@VModule@llvm@@@llvm@@0UAnalysisSetKey@2@A'
 +        or symbol == '?SetKey@?$AllAnalysesOn@VFunction@llvm@@@llvm@@0UAnalysisSetKey@2@A'
 +        or symbol == '?AllAnalysesKey@PreservedAnalyses@llvm@@0UAnalysisSetKey@2@A'
-+        or symbol == '?Key@PassInstrumentationAnalysis@llvm@@0UAnalysisKey@2@A'):
++        or symbol == '?Key@PassInstrumentationAnalysis@llvm@@0UAnalysisKey@2@A'
++        or symbol == '?Key@?$InnerAnalysisManagerProxy@V?$AnalysisManager@VFunction@llvm@@$$V@llvm@@VModule@2@$$V@llvm@@0UAnalysisKey@2@A'):
 +        return symbol
 +
      # Keep unmangled (i.e. extern "C") names

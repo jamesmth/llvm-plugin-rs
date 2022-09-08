@@ -8,25 +8,32 @@ pub type AnalysisKey = *mut u8;
 
 #[link(name = "llvm-plugin-cpp")]
 extern "C" {
-    pub fn getFunctionAnalysisResult(
+    fn getFunctionAnalysisManagerModuleProxy(
+        manager: *mut c_void,
+        function: *mut c_void,
+    ) -> *mut c_void;
+
+    fn getFunctionAnalysisManager(manager_proxy: *mut c_void) -> *mut c_void;
+
+    fn getFunctionAnalysisResult(
         manager: *mut c_void,
         id: AnalysisKey,
         function: *mut c_void,
     ) -> *mut c_void;
 
-    pub fn getModuleAnalysisResult(
+    fn getModuleAnalysisResult(
         manager: *mut c_void,
         id: AnalysisKey,
         module: *mut c_void,
     ) -> *mut c_void;
 
-    pub fn getFunctionAnalysisCachedResult(
+    fn getFunctionAnalysisCachedResult(
         manager: *mut c_void,
         id: AnalysisKey,
         function: *mut c_void,
     ) -> *mut c_void;
 
-    pub fn getModuleAnalysisCachedResult(
+    fn getModuleAnalysisCachedResult(
         manager: *mut c_void,
         id: AnalysisKey,
         module: *mut c_void,
@@ -43,6 +50,17 @@ extern "C" {
     fn llvmPluginApiVersion() -> u32;
 
     fn llvmPluginRegistrar() -> unsafe extern "C" fn(*mut c_void);
+}
+
+pub(super) fn get_function_analysis_manager_module_proxy(
+    manager: *mut c_void,
+    function: *mut c_void,
+) -> *mut c_void {
+    unsafe { getFunctionAnalysisManagerModuleProxy(manager, function) }
+}
+
+pub(super) fn get_function_analysis_manager(manager_proxy: *mut c_void) -> *mut c_void {
+    unsafe { getFunctionAnalysisManager(manager_proxy) }
 }
 
 pub(super) fn get_module_analysis_result(

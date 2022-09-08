@@ -9,6 +9,19 @@
 #include "pass.hh"
 
 extern "C" {
+auto getFunctionAnalysisManagerModuleProxy(llvm::ModuleAnalysisManager &AM,
+                                           llvm::Module &Module) -> void * {
+  auto &FAMProxy =
+      AM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(Module);
+  return static_cast<void *>(&FAMProxy);
+}
+
+auto getFunctionAnalysisManager(
+    llvm::FunctionAnalysisManagerModuleProxy::Result &FAMProxy) -> void * {
+  auto &FAM = FAMProxy.getManager();
+  return static_cast<void *>(&FAM);
+}
+
 auto getModuleAnalysisResult(llvm::ModuleAnalysisManager &AM,
                              llvm::AnalysisKey *Key, llvm::Module &Module)
     -> void * {

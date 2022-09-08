@@ -160,4 +160,36 @@ impl ModuleAnalysisManager {
             (!res.is_null()).then_some(Box::leak(Box::from_raw(res.cast())))
         }
     }
+
+    /// Returns a [`FunctionAnalysisManagerProxy`], which is essentially an interface
+    /// allowing management of analyses at the function level.
+    pub fn get_function_analysis_manager_proxy<'a>(
+        &self,
+        module: &Module<'a>,
+    ) -> FunctionAnalysisManagerProxy {
+        let proxy = crate::get_function_analysis_manager_module_proxy(self.inner, unsafe {
+            module.get_ref().cast()
+        });
+        FunctionAnalysisManagerProxy { inner: proxy }
+    }
+}
+
+/// Struct allowing to make queries to the pass manager about function-level
+/// analyses.
+///
+/// The main use-case of such interface is to give the ability for module-level
+/// passes to trigger/query function-level analyses.
+pub struct FunctionAnalysisManagerProxy {
+    inner: *mut c_void,
+}
+
+impl FunctionAnalysisManagerProxy {
+    /// Returns the inner [`FunctionAnalysisManager`].
+    pub fn get_manager(&self) -> FunctionAnalysisManager {
+        let manager = crate::get_function_analysis_manager(self.inner);
+        FunctionAnalysisManager {
+            inner: manager,
+            from_analysis_id: None,
+        }
+    }
 }
