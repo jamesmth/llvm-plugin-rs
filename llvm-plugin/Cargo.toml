@@ -1,6 +1,6 @@
 [package]
 name = "llvm-plugin"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["James Smith <jamesmth@proton.me>"]
 categories = ["development-tools::ffi"]
 description = "A wrapper for easily implementing out-of-source-tree LLVM plugins in Rust."
