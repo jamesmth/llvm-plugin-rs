@@ -1,5 +1,84 @@
-The following patch incorporates changes from https://reviews.llvm.org/D86126.
-
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a02c2a5..5a79abd 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -50,6 +50,10 @@ project(LLVM
+   VERSION ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}
+   LANGUAGES C CXX ASM)
+ 
++if (LLVM_EXPORT_SYMBOLS_FOR_PLUGINS)
++  add_definitions(-DEXPORT_SYMBOLS)
++endif()
++
+ set(CMAKE_CXX_STANDARD 14 CACHE STRING "C++ standard to conform to")
+ set(CMAKE_CXX_STANDARD_REQUIRED YES)
+ set(CMAKE_CXX_EXTENSIONS NO)
+diff --git a/include/llvm/IR/PassManager.h b/include/llvm/IR/PassManager.h
+index 58591ab..e4a9216 100644
+--- a/include/llvm/IR/PassManager.h
++++ b/include/llvm/IR/PassManager.h
+@@ -34,6 +34,8 @@
+ ///
+ //===----------------------------------------------------------------------===//
+ 
++#pragma warning( disable : 4251 )
++
+ #ifndef LLVM_IR_PASSMANAGER_H
+ #define LLVM_IR_PASSMANAGER_H
+ 
+@@ -62,6 +64,12 @@
+ 
+ namespace llvm {
+ 
++#ifdef EXPORT_SYMBOLS
++  #define DLL_API __declspec(dllexport)
++#else
++  #define DLL_API __declspec(dllimport)
++#endif
++
+ /// A special type used by analysis passes to provide an address that
+ /// identifies that particular analysis pass type.
+ ///
+@@ -99,8 +107,8 @@ private:
+ 
+ template <typename IRUnitT> AnalysisSetKey AllAnalysesOn<IRUnitT>::SetKey;
+ 
+-extern template class AllAnalysesOn<Module>;
+-extern template class AllAnalysesOn<Function>;
++template class DLL_API AllAnalysesOn<Module>;
++template class DLL_API AllAnalysesOn<Function>;
+ 
+ /// Represents analyses that only rely on functions' control flow.
+ ///
+@@ -151,7 +159,7 @@ private:
+ ///     // The analysis has been successfully preserved ...
+ ///   }
+ /// ```
+-class PreservedAnalyses {
++class DLL_API PreservedAnalyses {
+ public:
+   /// Convenience factory function for the empty preserved set.
+   static PreservedAnalyses none() { return PreservedAnalyses(); }
+@@ -579,7 +587,7 @@ using FunctionPassManager = PassManager<Function>;
+ /// internals (e.g PassInstrumentationAnalysis::ID) for use there if needed.
+ /// FIXME: figure out a way to move PassInstrumentationAnalysis into its own
+ /// header.
+-class PassInstrumentationAnalysis
++class DLL_API PassInstrumentationAnalysis
+     : public AnalysisInfoMixin<PassInstrumentationAnalysis> {
+   friend AnalysisInfoMixin<PassInstrumentationAnalysis>;
+   static AnalysisKey Key;
+@@ -1136,8 +1144,8 @@ bool FunctionAnalysisManagerModuleProxy::Result::invalidate(
+ 
+ // Ensure the \c FunctionAnalysisManagerModuleProxy is provided as an extern
+ // template.
+-extern template class InnerAnalysisManagerProxy<FunctionAnalysisManager,
+-                                                Module>;
++template class DLL_API InnerAnalysisManagerProxy<FunctionAnalysisManager,
++                                                 Module>;
+ 
+ /// An analysis over an "inner" IR unit that provides access to an
+ /// analysis manager over a "outer" IR unit.  The inner unit must be contained
 diff --git a/include/llvm/Support/type_traits.h b/include/llvm/Support/type_traits.h
 index b7d48e8..27f44d5 100644
 --- a/include/llvm/Support/type_traits.h
@@ -82,22 +161,3 @@ index b7d48e8..27f44d5 100644
  };
  template <typename T>
  class is_trivially_copyable<T*> : public std::true_type {
-diff --git a/utils/extract_symbols.py b/utils/extract_symbols.py
-index 7cdcce1..1cc52be 100755
---- a/utils/extract_symbols.py
-+++ b/utils/extract_symbols.py
-@@ -120,6 +120,14 @@ def readobj_is_32bit_windows(lib):
- # identifier/type mangling we can decide which symbols could possibly be
- # required and which we can discard.
- def should_keep_microsoft_symbol(symbol, calling_convention_decoration):
-+    # required global variables
-+    if (symbol == '?SetKey@?$AllAnalysesOn@VModule@llvm@@@llvm@@0UAnalysisSetKey@2@A'
-+        or symbol == '?SetKey@?$AllAnalysesOn@VFunction@llvm@@@llvm@@0UAnalysisSetKey@2@A'
-+        or symbol == '?AllAnalysesKey@PreservedAnalyses@llvm@@0UAnalysisSetKey@2@A'
-+        or symbol == '?Key@PassInstrumentationAnalysis@llvm@@0UAnalysisKey@2@A'
-+        or symbol == '?Key@?$InnerAnalysisManagerProxy@V?$AnalysisManager@VFunction@llvm@@$$V@llvm@@VModule@2@$$V@llvm@@0UAnalysisKey@2@A'):
-+        return symbol
-+
-     # Keep unmangled (i.e. extern "C") names
-     if not '?' in symbol:
-         if calling_convention_decoration:
