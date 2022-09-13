@@ -61,3 +61,8 @@ path = "../examples/hello_world.rs"
 name = "opcode-counter"
 crate-type = ["cdylib"]
 path = "../examples/opcode_counter.rs"
+
+[[example]]
+name = "inject-printf"
+crate-type = ["cdylib"]
+path = "../examples/inject_printf.rs"
