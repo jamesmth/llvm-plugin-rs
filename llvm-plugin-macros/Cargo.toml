@@ -1,6 +1,6 @@
 [package]
 name = "llvm-plugin-macros"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["James Smith <jamesmth@proton.me>"]
 categories = ["development-tools::ffi"]
 description = "Proc macros for llvm-plugin"
