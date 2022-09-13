@@ -52,6 +52,9 @@ lazy_static = "1"
 regex = "1"
 semver = "1"
 
+[dev-dependencies]
+either = "1"
+
 [[example]]
 name = "hello-world"
 crate-type = ["cdylib"]
@@ -66,3 +69,8 @@ path = "../examples/opcode_counter.rs"
 name = "inject-printf"
 crate-type = ["cdylib"]
 path = "../examples/inject_printf.rs"
+
+[[example]]
+name = "static-call-counter"
+crate-type = ["cdylib"]
+path = "../examples/static_call_counter.rs"
