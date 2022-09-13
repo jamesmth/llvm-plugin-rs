@@ -333,7 +333,7 @@ fn process_llvm_module_pass_impl(
     register_snippets: &mut Vec<TokenStream2>,
 ) {
     let ItemImpl { self_ty, .. } = item_impl;
-    let entrypoint = format_ident!("{}_entrypoint", name);
+    let entrypoint = format_ident!("{}_entrypoint", name.replace('-', "_"));
 
     module_items.push(parse_quote! {
         extern "C" fn #entrypoint(
@@ -362,7 +362,7 @@ fn process_llvm_function_pass_impl(
     register_snippets: &mut Vec<TokenStream2>,
 ) {
     let ItemImpl { self_ty, .. } = item_impl;
-    let entrypoint = format_ident!("{}_entrypoint", name);
+    let entrypoint = format_ident!("{}_entrypoint", name.replace('-', "_"));
 
     module_items.push(parse_quote! {
         extern "C" fn #entrypoint(
