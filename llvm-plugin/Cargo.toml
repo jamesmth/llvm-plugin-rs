@@ -74,3 +74,8 @@ path = "../examples/inject_printf.rs"
 name = "static-call-counter"
 crate-type = ["cdylib"]
 path = "../examples/static_call_counter.rs"
+
+[[example]]
+name = "string-obf"
+crate-type = ["cdylib"]
+path = "../examples/strings.rs"
