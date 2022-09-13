@@ -51,3 +51,8 @@ cc = "1"
 lazy_static = "1"
 regex = "1"
 semver = "1"
+
+[[example]]
+name = "hello-world"
+crate-type = ["cdylib"]
+path = "../examples/hello_world.rs"
