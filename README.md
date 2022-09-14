@@ -136,23 +136,46 @@ distributed on `apt` and `homebrew` registeries.
 If you are not in this case, you have to compile LLVM from sources by specifying the `LLVM_LINK_LLVM_DYLIB=ON`
 cmake flag.
 
+<details>
+ <summary><em>Compile LLVM-14</em></summary>
+
+ ```shell
+ $ wget https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.0/llvm-14.0.0.src.tar.xz
+ $ tar xf llvm-14.0.0.src.tar.xz && cd llvm-14.0.0.src
+ $ mkdir build && cd build
+ $ cmake .. \
+     -DCMAKE_BUILD_TYPE=Release \
+     -DCMAKE_INSTALL_PREFIX="$HOME/llvm" \
+     -DLLVM_LINK_LLVM_DYLIB=ON \
+     -G Ninja
+ $ ninja install
+ ```
+
+ </details>
+
 ## Windows Requirements
 
 You have to compile LLVM from sources in any case, because you need to apply some patches to the LLVM
 code base before compiling. Then, you need to specify the `LLVM_EXPORT_SYMBOLS_FOR_PLUGINS=ON` cmake flag
 while leaving the `LLVM_TARGETS_TO_BUILD` flag to its default value.
 
-Here are the detailed steps (replace `llvm-XX` with the one matching your LLVM version):
-```bash
-$ cat ci/windows/llvm-XX.patch | patch -p1 -d <YOUR_LLVM_SRC_DIR>
-$ mkdir <YOUR_LLVM_SRC_DIR>/build && cd <YOUR_LLVM_SRC_DIR>/build
-$ cmake .. \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=<YOUR_INSTALL_PATH> \
-    -DLLVM_EXPORT_SYMBOLS_FOR_PLUGINS=ON \
-    -G Ninja
-$ ninja install
-$ cp lib/opt.lib <YOUR_INSTALL_PATH>/lib
-```
+<details>
+ <summary><em>Compile LLVM-14</em></summary>
 
-Make sure you updated your `$PATH` environment variable with `<YOUR_INSTALL_PATH>/bin`
+ ```shell
+ $ wget https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.0/llvm-14.0.0.src.tar.xz
+ $ tar xf llvm-14.0.0.src.tar.xz && cd llvm-14.0.0.src
+ $ cat ../ci/windows/llvm-14.patch | patch -p1
+ $ mkdir build && cd build
+ $ cmake .. \
+     -DCMAKE_BUILD_TYPE=Release \
+     -DCMAKE_INSTALL_PREFIX="C:\\llvm" \
+     -DLLVM_EXPORT_SYMBOLS_FOR_PLUGINS=ON \
+     -G Ninja
+ $ ninja install
+ $ cp lib/opt.lib /c/llvm/lib
+ ```
+
+</details>
+
+Make sure you updated your `PATH` environment variable with your LLVM installation path.
