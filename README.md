@@ -178,4 +178,16 @@ while leaving the `LLVM_TARGETS_TO_BUILD` flag to its default value.
 
 </details>
 
-Make sure you updated your `PATH` environment variable with your LLVM installation path.
+Don't forget to update your `PATH` environment variable with your LLVM installation path.
+
+## Missing Features
+
+- Support for loop passes (`Inkwell` doesn't currently provide safe wrappers)
+- Support for CGSCC passes (`Inkwell` doesn't currently provide safe wrappers)
+- FFI over the full manager proxy API (only a subset is currently implemented)
+- FFI over the full analysis invalidation API (only a subset is currently implemented)
+- FFI over builtin LLVM analyses (e.g. dominator tree)
+
+Contributions are very welcome, make sure to check out the [Contributing Guide] first!
+
+[Contributing Guide]: ./.github/CONTRIBUTING.md
