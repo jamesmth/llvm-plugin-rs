@@ -234,7 +234,13 @@ compile_error!("LLVM 10 not supported on Windows");
 // Since we use `llvm-no-linking`, `llvm-sys` won't trigger that error
 // for us, so we need to take care of it ourselves.
 #[cfg(all(not(doc), LLVM_NOT_FOUND))]
-compile_error!(
+compile_error!(concat!(
     "No suitable version of LLVM was found system-wide or pointed
-       to by LLVM_PLUGIN_PREFIX."
-);
+       to by LLVM_SYS_",
+    env!("LLVM_VERSION_MAJOR"),
+    "_PREFIX.
+
+       Refer to the llvm-sys documentation for more information.
+
+       llvm-sys: https://crates.io/crates/llvm-sys"
+));

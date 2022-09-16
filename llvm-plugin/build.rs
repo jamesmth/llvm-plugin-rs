@@ -1,4 +1,7 @@
 fn main() {
+    let (major, minor) = *llvm_sys::LLVM_VERSION_FROM_FEATURES;
+    println!("cargo:rustc-env=LLVM_VERSION_MAJOR={}{}", major, minor);
+
     if llvm_sys::LLVM_CONFIG_PATH.is_none() {
         println!("cargo:rustc-cfg=LLVM_NOT_FOUND");
         return;
@@ -44,11 +47,10 @@ fn main() {
     }
 
     println!("cargo:rerun-if-changed=cpp");
+    println!("cargo:rerun-if-env-changed={}", &*llvm_sys::ENV_LLVM_PREFIX);
 }
 
 // Most code from this module was taken from the `llvm-sys` crate.
-// Locally patching such crate wasn't an option, because inkwell requires
-// it to be published (for version selection).
 //
 // Like `llvm-sys`, we need to locate the `llvm-config` binary, which
 // is why we borrowed code from this crate.
@@ -63,12 +65,18 @@ mod llvm_sys {
     use std::path::PathBuf;
     use std::process::Command;
 
-    /// A single path to search for LLVM in (containing bin/llvm-config)
-    const ENV_LLVM_PREFIX: &str = "LLVM_PLUGIN_PREFIX";
-
     lazy_static! {
         /// Filesystem path to an llvm-config binary for the correct version.
         pub static ref LLVM_CONFIG_PATH: Option<PathBuf> = locate_llvm_config();
+
+        /// Retrieve LLVM version from crate features.
+        pub static ref LLVM_VERSION_FROM_FEATURES: (u32, u32) = llvm_version_from_features();
+
+        /// A single path to search for LLVM in (containing bin/llvm-config)
+        pub static ref ENV_LLVM_PREFIX: String = {
+            let (major, minor) = *LLVM_VERSION_FROM_FEATURES;
+            format!("LLVM_SYS_{}{}_PREFIX", major, minor)
+        };
     }
 
     /// Try to find a version of llvm-config that is compatible with this crate.
@@ -80,7 +88,7 @@ mod llvm_sys {
     ///
     /// Returns None on failure.
     fn locate_llvm_config() -> Option<PathBuf> {
-        let prefix = env::var_os(ENV_LLVM_PREFIX)
+        let prefix = env::var_os(&*ENV_LLVM_PREFIX)
             .map(|p| PathBuf::from(p).join("bin"))
             .unwrap_or_else(PathBuf::new);
         for binary_name in llvm_config_binary_names() {
@@ -106,19 +114,7 @@ mod llvm_sys {
 
     /// Return an iterator over possible names for the llvm-config binary.
     fn llvm_config_binary_names() -> std::vec::IntoIter<String> {
-        let (major, minor) = if cfg!(feature = "llvm10-0") {
-            (10, 0)
-        } else if cfg!(feature = "llvm11-0") {
-            (11, 0)
-        } else if cfg!(feature = "llvm12-0") {
-            (12, 0)
-        } else if cfg!(feature = "llvm13-0") {
-            (13, 0)
-        } else if cfg!(feature = "llvm14-0") {
-            (14, 0)
-        } else {
-            return vec![].into_iter();
-        };
+        let (major, minor) = *LLVM_VERSION_FROM_FEATURES;
 
         let mut base_names = vec![
             "llvm-config".into(),
@@ -192,5 +188,21 @@ mod llvm_sys {
             Some(_) => c[0].to_string(),
         };
         Ok(Version::parse(&s).unwrap())
+    }
+
+    fn llvm_version_from_features() -> (u32, u32) {
+        if cfg!(feature = "llvm10-0") {
+            (10, 0)
+        } else if cfg!(feature = "llvm11-0") {
+            (11, 0)
+        } else if cfg!(feature = "llvm12-0") {
+            (12, 0)
+        } else if cfg!(feature = "llvm13-0") {
+            (13, 0)
+        } else if cfg!(feature = "llvm14-0") {
+            (14, 0)
+        } else {
+            panic!("Missing llvm* feature")
+        }
     }
 }
