@@ -1,13 +1,85 @@
 use std::ffi::c_void;
 
-type PassEntrypointFn = extern "C" fn(*mut c_void, *mut c_void) -> crate::PreservedAnalyses;
-type AnalysisEntrypointFn =
-    extern "C" fn(*mut c_void, *mut c_void, *mut *mut c_void, *mut extern "C" fn(*mut c_void));
-
-pub type AnalysisKey = *mut u8;
+pub type AnalysisKey = *const u8;
 
 #[link(name = "llvm-plugin-cpp")]
 extern "C" {
+    pub(crate) fn passBuilderAddModuleAnalysisRegistrationCallback(
+        builder: *mut c_void,
+        cb: *const c_void,
+        cb_deleter: extern "C" fn(*const c_void),
+        cb_sys: extern "C" fn(*const c_void, *mut c_void),
+    );
+
+    pub(crate) fn passBuilderAddFunctionAnalysisRegistrationCallback(
+        builder: *mut c_void,
+        cb: *const c_void,
+        cb_deleter: extern "C" fn(*const c_void),
+        cb_sys: extern "C" fn(*const c_void, *mut c_void),
+    );
+
+    pub(crate) fn passBuilderAddModulePipelineParsingCallback(
+        builder: *mut c_void,
+        cb: *const c_void,
+        cb_deleter: extern "C" fn(*const c_void),
+        cb_sys: extern "C" fn(*const c_void, *const u8, usize, *mut c_void) -> bool,
+    );
+
+    pub(crate) fn passBuilderAddFunctionPipelineParsingCallback(
+        builder: *mut c_void,
+        cb: *const c_void,
+        cb_deleter: extern "C" fn(*const c_void),
+        cb_sys: extern "C" fn(*const c_void, *const u8, usize, *mut c_void) -> bool,
+    );
+
+    pub(crate) fn modulePassManagerAddPass(
+        manager: *mut c_void,
+        pass: *mut c_void,
+        pass_deleter: extern "C" fn(*mut c_void),
+        pass_sys: extern "C" fn(*mut c_void, *mut c_void, *mut c_void) -> crate::PreservedAnalyses,
+    );
+
+    #[cfg(any(feature = "llvm12-0", feature = "llvm13-0", feature = "llvm14-0"))]
+    pub(crate) fn modulePassManagerIsEmpty(manager: *mut c_void) -> bool;
+
+    pub(crate) fn functionPassManagerAddPass(
+        manager: *mut c_void,
+        pass: *mut c_void,
+        pass_deleter: extern "C" fn(*mut c_void),
+        pass_sys: extern "C" fn(*mut c_void, *mut c_void, *mut c_void) -> crate::PreservedAnalyses,
+    );
+
+    #[cfg(any(feature = "llvm12-0", feature = "llvm13-0", feature = "llvm14-0"))]
+    pub(crate) fn functionPassManagerIsEmpty(manager: *mut c_void) -> bool;
+
+    pub(crate) fn moduleAnalysisManagerRegisterPass(
+        manager: *mut c_void,
+        pass: *mut c_void,
+        pass_deleter: extern "C" fn(*mut c_void),
+        pass_sys: extern "C" fn(
+            pass: *mut c_void,
+            module: *mut c_void,
+            manager: *mut c_void,
+            res: *mut *mut c_void,
+            res_deleter: *mut extern "C" fn(*mut c_void),
+        ),
+        id: AnalysisKey,
+    ) -> bool;
+
+    pub(crate) fn functionAnalysisManagerRegisterPass(
+        manager: *mut c_void,
+        pass: *mut c_void,
+        pass_deleter: extern "C" fn(*mut c_void),
+        pass_sys: extern "C" fn(
+            pass: *mut c_void,
+            module: *mut c_void,
+            manager: *mut c_void,
+            res: *mut *mut c_void,
+            res_deleter: *mut extern "C" fn(*mut c_void),
+        ),
+        id: AnalysisKey,
+    ) -> bool;
+
     fn getFunctionAnalysisManagerModuleProxy(
         manager: *mut c_void,
         function: *mut c_void,
@@ -39,17 +111,7 @@ extern "C" {
         module: *mut c_void,
     ) -> *mut c_void;
 
-    fn registerModulePass(name: *const u8, name_len: usize, entrypoint: PassEntrypointFn);
-
-    fn registerFunctionPass(name: *const u8, name_len: usize, entrypoint: PassEntrypointFn);
-
-    fn registerModuleAnalysis(id: AnalysisKey, entrypoint: AnalysisEntrypointFn);
-
-    fn registerFunctionAnalysis(id: AnalysisKey, entrypoint: AnalysisEntrypointFn);
-
     fn llvmPluginApiVersion() -> u32;
-
-    fn llvmPluginRegistrar() -> unsafe extern "C" fn(*mut c_void);
 }
 
 pub(super) fn get_function_analysis_manager_module_proxy(
@@ -96,33 +158,6 @@ pub(super) fn get_function_analysis_cached_result(
 }
 
 #[doc(hidden)]
-pub fn register_module_pass__(name: &str, entrypoint: PassEntrypointFn) {
-    unsafe { registerModulePass(name.as_ptr(), name.len(), entrypoint) };
-}
-
-#[doc(hidden)]
-pub fn register_function_pass__(name: &str, entrypoint: PassEntrypointFn) {
-    unsafe { registerFunctionPass(name.as_ptr(), name.len(), entrypoint) };
-}
-
-#[doc(hidden)]
-#[allow(clippy::not_unsafe_ptr_arg_deref)]
-pub fn register_module_analysis__(id: AnalysisKey, entrypoint: AnalysisEntrypointFn) {
-    unsafe { registerModuleAnalysis(id, entrypoint) };
-}
-
-#[doc(hidden)]
-#[allow(clippy::not_unsafe_ptr_arg_deref)]
-pub fn register_function_analysis__(id: AnalysisKey, entrypoint: AnalysisEntrypointFn) {
-    unsafe { registerFunctionAnalysis(id, entrypoint) };
-}
-
-#[doc(hidden)]
 pub fn get_llvm_plugin_api_version__() -> u32 {
     unsafe { llvmPluginApiVersion() }
-}
-
-#[doc(hidden)]
-pub fn get_llvm_plugin_registrar__() -> unsafe extern "C" fn(*mut c_void) {
-    unsafe { llvmPluginRegistrar() }
 }

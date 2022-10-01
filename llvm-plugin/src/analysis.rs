@@ -4,6 +4,8 @@ use inkwell::module::Module;
 use inkwell::values::{AsValueRef, FunctionValue};
 use inkwell::LLVMReference;
 
+use crate::{LlvmFunctionAnalysis, LlvmModuleAnalysis};
+
 /// Struct allowing to query the pass manager for the result of
 /// analyses on function IR.
 pub struct FunctionAnalysisManager {
@@ -30,9 +32,8 @@ impl FunctionAnalysisManager {
     ///
     /// # Panics
     ///
-    /// Panics if the given analysis wasn't registered (happens if the `#[analysis]`
-    /// attribute wasn't used), or if this function was called within the given analysis
-    /// itself.
+    /// Panics if the given analysis wasn't registered, or if this function was
+    /// called within the given analysis itself.
     pub fn get_result<'a, A>(&self, function: &FunctionValue<'a>) -> &A::Result
     where
         A: crate::LlvmFunctionAnalysis,
@@ -59,9 +60,8 @@ impl FunctionAnalysisManager {
     ///
     /// # Panics
     ///
-    /// Panics if the given analysis wasn't registered (happens if the `#[analysis]`
-    /// attribute wasn't used), or if this function was called within the given analysis
-    /// itself.
+    /// Panics if the given analysis wasn't registered, or if this function was
+    /// called within the given analysis itself.
     pub fn get_cached_result<'a, A>(&self, function: &FunctionValue<'a>) -> Option<&A::Result>
     where
         A: crate::LlvmFunctionAnalysis,
@@ -80,6 +80,67 @@ impl FunctionAnalysisManager {
             );
             (!res.is_null()).then_some(Box::leak(Box::from_raw(res.cast())))
         }
+    }
+
+    /// Register an analysis pass to the analysis manager.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the given analysis was already registered.
+    pub fn register_pass<T>(&mut self, pass: T)
+    where
+        T: LlvmFunctionAnalysis,
+    {
+        let pass = Box::new(pass);
+
+        extern "C" fn result_deleter<T>(data: *mut c_void)
+        where
+            T: LlvmFunctionAnalysis,
+        {
+            drop(unsafe { Box::<<T as LlvmFunctionAnalysis>::Result>::from_raw(data.cast()) })
+        }
+
+        extern "C" fn pass_deleter<T>(pass: *mut c_void) {
+            drop(unsafe { Box::<T>::from_raw(pass.cast()) })
+        }
+
+        extern "C" fn pass_entrypoint<T>(
+            pass: *mut c_void,
+            function: *mut c_void,
+            manager: *mut c_void,
+            res: *mut *mut c_void,
+            res_deleter: *mut extern "C" fn(*mut c_void),
+        ) where
+            T: LlvmFunctionAnalysis,
+        {
+            let pass = unsafe { Box::<T>::from_raw(pass.cast()) };
+            let function = unsafe { FunctionValue::new(function.cast()).unwrap() };
+            let manager = unsafe { FunctionAnalysisManager::from_raw(manager, Some(T::id())) };
+
+            let data = pass.run_analysis(&function, &manager);
+
+            let data = Box::new(data);
+            unsafe {
+                *res = Box::<<T as LlvmFunctionAnalysis>::Result>::into_raw(data).cast();
+                *res_deleter = result_deleter::<T>;
+            }
+
+            Box::into_raw(pass);
+            #[allow(clippy::forget_copy)]
+            std::mem::forget(function);
+        }
+
+        let success = unsafe {
+            super::functionAnalysisManagerRegisterPass(
+                self.inner,
+                Box::into_raw(pass).cast(),
+                pass_deleter::<T>,
+                pass_entrypoint::<T>,
+                T::id(),
+            )
+        };
+
+        assert!(success, "analysis already registered");
     }
 }
 
@@ -109,9 +170,8 @@ impl ModuleAnalysisManager {
     ///
     /// # Panics
     ///
-    /// Panics if the given analysis wasn't registered (happens if the `#[analysis]`
-    /// attribute wasn't used), or if this function was called within the given analysis
-    /// itself.
+    /// Panics if the given analysis wasn't registered, or if this function was
+    /// called within the given analysis itself.
     pub fn get_result<'a, A>(&self, module: &Module<'a>) -> &A::Result
     where
         A: crate::LlvmModuleAnalysis,
@@ -138,9 +198,8 @@ impl ModuleAnalysisManager {
     ///
     /// # Panics
     ///
-    /// Panics if the given analysis wasn't registered (happens if the `#[analysis]`
-    /// attribute wasn't used), or if this function was called within the given analysis
-    /// itself.
+    /// Panics if the given analysis wasn't registered, or if this function was
+    /// called within the given analysis itself.
     pub fn get_cached_result<'a, A>(&self, module: &Module<'a>) -> Option<&A::Result>
     where
         A: crate::LlvmModuleAnalysis,
@@ -161,7 +220,7 @@ impl ModuleAnalysisManager {
         }
     }
 
-    /// Returns a [`FunctionAnalysisManagerProxy`], which is essentially an interface
+    /// Returns a [FunctionAnalysisManagerProxy], which is essentially an interface
     /// allowing management of analyses at the function level.
     pub fn get_function_analysis_manager_proxy<'a>(
         &self,
@@ -172,6 +231,66 @@ impl ModuleAnalysisManager {
         });
         FunctionAnalysisManagerProxy { inner: proxy }
     }
+
+    /// Register an analysis pass to the analysis manager.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the given analysis was already registered.
+    pub fn register_pass<T>(&mut self, pass: T)
+    where
+        T: LlvmModuleAnalysis,
+    {
+        let pass = Box::new(pass);
+
+        extern "C" fn result_deleter<T>(data: *mut c_void)
+        where
+            T: LlvmModuleAnalysis,
+        {
+            drop(unsafe { Box::<<T as LlvmModuleAnalysis>::Result>::from_raw(data.cast()) })
+        }
+
+        extern "C" fn pass_deleter<T>(pass: *mut c_void) {
+            drop(unsafe { Box::<T>::from_raw(pass.cast()) })
+        }
+
+        extern "C" fn pass_entrypoint<T>(
+            pass: *mut c_void,
+            module: *mut c_void,
+            manager: *mut c_void,
+            res: *mut *mut c_void,
+            res_deleter: *mut extern "C" fn(*mut c_void),
+        ) where
+            T: LlvmModuleAnalysis,
+        {
+            let pass = unsafe { Box::<T>::from_raw(pass.cast()) };
+            let module = unsafe { Module::new(module.cast()) };
+            let manager = unsafe { ModuleAnalysisManager::from_raw(manager, Some(T::id())) };
+
+            let data = pass.run_analysis(&module, &manager);
+
+            let data = Box::new(data);
+            unsafe {
+                *res = Box::<<T as LlvmModuleAnalysis>::Result>::into_raw(data).cast();
+                *res_deleter = result_deleter::<T>;
+            }
+
+            Box::into_raw(pass);
+            std::mem::forget(module);
+        }
+
+        let success = unsafe {
+            super::moduleAnalysisManagerRegisterPass(
+                self.inner,
+                Box::into_raw(pass).cast(),
+                pass_deleter::<T>,
+                pass_entrypoint::<T>,
+                T::id(),
+            )
+        };
+
+        assert!(success, "analysis already registered");
+    }
 }
 
 /// Struct allowing to make queries to the pass manager about function-level
@@ -179,12 +298,58 @@ impl ModuleAnalysisManager {
 ///
 /// The main use-case of such interface is to give the ability for module-level
 /// passes to trigger/query function-level analyses.
+///
+/// # Example
+///
+/// ```
+/// # use llvm_plugin::inkwell::module::Module;
+/// # use llvm_plugin::inkwell::values::FunctionValue;
+/// # use llvm_plugin::{
+/// #    AnalysisKey, FunctionAnalysisManager, LlvmFunctionAnalysis, LlvmModulePass,
+/// #    ModuleAnalysisManager, PreservedAnalyses,
+/// # };
+/// struct Pass;
+/// impl LlvmModulePass for Pass {
+///     fn run_pass(
+///         &self,
+///         module: &mut Module,
+///         manager: &ModuleAnalysisManager
+///      ) -> PreservedAnalyses {
+///         let manager = manager
+///             .get_function_analysis_manager_proxy(&module)
+///             .get_manager();
+///
+///         let function = module.get_first_function().unwrap();
+///         let result = manager.get_result::<Analysis>(&function);
+///         assert_eq!(result, "Some result");
+///
+///         PreservedAnalyses::All
+///     }
+/// }
+///
+/// struct Analysis;
+/// impl LlvmFunctionAnalysis for Analysis {
+///     type Result = String;
+///
+///     fn run_analysis(
+///         &self,
+///         _function: &FunctionValue,
+///         _manager: &FunctionAnalysisManager,
+///     ) -> Self::Result {
+///         "Some result".to_owned()
+///     }
+///
+///     fn id() -> AnalysisKey {
+///         1 as AnalysisKey
+///     }
+/// }
+/// ```
 pub struct FunctionAnalysisManagerProxy {
     inner: *mut c_void,
 }
 
 impl FunctionAnalysisManagerProxy {
-    /// Returns the inner [`FunctionAnalysisManager`].
+    /// Returns the inner [FunctionAnalysisManager].
     pub fn get_manager(&self) -> FunctionAnalysisManager {
         let manager = crate::get_function_analysis_manager(self.inner);
         FunctionAnalysisManager {

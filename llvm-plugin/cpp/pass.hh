@@ -1,6 +1,7 @@
 #pragma once
 
-#include <llvm/ADT/StringMap.h>
+#include <memory>
+
 #include <llvm/IR/PassManager.h>
 
 #include "common.hh"
@@ -12,22 +13,28 @@ enum class PreservedAnalyses {
 };
 
 template <typename IR> struct Pass : public llvm::PassInfoMixin<Pass<IR>> {
-  using Entrypoint = PreservedAnalyses (*)(typename IR::Unit &,
+  using DataPtr = const void *;
+  using DataDeleter = void (*)(DataPtr);
+  using Data = std::unique_ptr<std::remove_pointer_t<DataPtr>, DataDeleter>;
+
+  using Entrypoint = PreservedAnalyses (*)(DataPtr, typename IR::Unit &,
                                            typename IR::AnalysisManager &);
 
-  Pass(Entrypoint Func) { this->Func = Func; }
+  Pass(Entrypoint Func, Data PassData) : PassData(std::move(PassData)) {
+    this->Func = Func;
+  }
 
   auto run(typename IR::Unit &IrUnit, typename IR::AnalysisManager &AM)
       -> llvm::PreservedAnalyses {
-    return (this->Func(IrUnit, AM) == PreservedAnalyses::kAll
+    return (this->Func(this->PassData.get(), IrUnit, AM) ==
+                    PreservedAnalyses::kAll
                 ? llvm::PreservedAnalyses::all()
                 : llvm::PreservedAnalyses::none());
   }
 
-  static inline auto PassMap = llvm::StringMap<Entrypoint>{};
-
 private:
   Entrypoint Func;
+  Data PassData;
 };
 
 } // namespace

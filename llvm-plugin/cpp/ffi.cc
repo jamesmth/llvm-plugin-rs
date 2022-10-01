@@ -1,3 +1,4 @@
+#include <memory>
 #include <mutex>
 
 #include <llvm/IR/PassManager.h>
@@ -9,6 +10,116 @@
 #include "pass.hh"
 
 extern "C" {
+auto moduleAnalysisManagerRegisterPass(
+    llvm::ModuleAnalysisManager &AM, Analysis<ModuleIR>::DataPtr AnalysisData,
+    Analysis<ModuleIR>::DataDeleter Deleter,
+    Analysis<ModuleIR>::Entrypoint Entrypoint, llvm::AnalysisKey *Key) -> bool {
+  const auto Lock = std::lock_guard{Analysis<ModuleIR>::MutexCurrentKey};
+  Analysis<ModuleIR>::CurrentKey = Key;
+  return AM.registerPass([&] {
+    return Analysis<ModuleIR>{Entrypoint, {AnalysisData, Deleter}};
+  });
+}
+
+auto functionAnalysisManagerRegisterPass(
+    llvm::FunctionAnalysisManager &AM,
+    Analysis<FunctionIR>::DataPtr AnalysisData,
+    Analysis<FunctionIR>::DataDeleter Deleter,
+    Analysis<FunctionIR>::Entrypoint Entrypoint, llvm::AnalysisKey *Key)
+    -> bool {
+  const auto Lock = std::lock_guard{Analysis<FunctionIR>::MutexCurrentKey};
+  Analysis<FunctionIR>::CurrentKey = Key;
+  return AM.registerPass([&] {
+    return Analysis<FunctionIR>{Entrypoint, {AnalysisData, Deleter}};
+  });
+}
+
+auto passBuilderAddModuleAnalysisRegistrationCallback(
+    llvm::PassBuilder &Builder, const void *DataPtr,
+    void (*Deleter)(const void *),
+    bool (*Callback)(const void *, llvm::ModuleAnalysisManager &)) -> void {
+  const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
+
+  Builder.registerAnalysisRegistrationCallback(
+      [Data = std::move(Data), Callback](llvm::ModuleAnalysisManager &AM) {
+        Callback(Data.get(), AM);
+      });
+}
+
+auto passBuilderAddFunctionAnalysisRegistrationCallback(
+    llvm::PassBuilder &Builder, const void *DataPtr,
+    void (*Deleter)(const void *),
+    bool (*Callback)(const void *, llvm::FunctionAnalysisManager &)) -> void {
+  const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
+
+  Builder.registerAnalysisRegistrationCallback(
+      [Data = std::move(Data), Callback](llvm::FunctionAnalysisManager &AM) {
+        Callback(Data.get(), AM);
+      });
+}
+
+auto passBuilderAddModulePipelineParsingCallback(
+    llvm::PassBuilder &Builder, const void *DataPtr,
+    void (*Deleter)(const void *),
+    bool (*Callback)(const void *, const char *, std::uintptr_t,
+                     llvm::ModulePassManager &)) -> void {
+  const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
+
+  Builder.registerPipelineParsingCallback(
+      [Data = std::move(Data), Callback](
+          llvm::StringRef PassName, llvm::ModulePassManager &PassManager,
+          llvm::ArrayRef<llvm::PassBuilder::PipelineElement> /*unused*/) {
+        return Callback(Data.get(), PassName.data(), PassName.size(),
+                        PassManager);
+      });
+}
+
+auto passBuilderAddFunctionPipelineParsingCallback(
+    llvm::PassBuilder &Builder, const void *DataPtr,
+    void (*Deleter)(const void *),
+    bool (*Callback)(const void *, const char *, std::uintptr_t,
+                     llvm::FunctionPassManager &)) -> void {
+  const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
+
+  Builder.registerPipelineParsingCallback(
+      [Data = std::move(Data), Callback](
+          llvm::StringRef PassName, llvm::FunctionPassManager &PassManager,
+          llvm::ArrayRef<llvm::PassBuilder::PipelineElement> /*unused*/) {
+        return Callback(Data.get(), PassName.data(), PassName.size(),
+                        PassManager);
+      });
+}
+
+auto modulePassManagerAddPass(llvm::ModulePassManager &PassManager,
+                              Pass<ModuleIR>::DataPtr PassData,
+                              Pass<ModuleIR>::DataDeleter Deleter,
+                              Pass<ModuleIR>::Entrypoint Entrypoint) -> void {
+  PassManager.addPass(Pass<ModuleIR>{Entrypoint, {PassData, Deleter}});
+}
+
+auto functionPassManagerAddPass(llvm::FunctionPassManager &PassManager,
+                                Pass<FunctionIR>::DataPtr PassData,
+                                Pass<FunctionIR>::DataDeleter Deleter,
+                                Pass<FunctionIR>::Entrypoint Entrypoint)
+    -> void {
+  PassManager.addPass(Pass<FunctionIR>{Entrypoint, {PassData, Deleter}});
+}
+
+#if defined(LLVM10_0) || defined(LLVM11_0)
+#else
+auto modulePassManagerIsEmpty(llvm::ModulePassManager &PassManager) -> bool {
+  return PassManager.isEmpty();
+}
+#endif
+
+#if defined(LLVM10_0) || defined(LLVM11_0)
+#else
+auto functionPassManagerIsEmpty(llvm::FunctionPassManager &PassManager)
+    -> bool {
+  return PassManager.isEmpty();
+}
+#endif
+
 auto getFunctionAnalysisManagerModuleProxy(llvm::ModuleAnalysisManager &AM,
                                            llvm::Module &Module) -> void * {
   auto &FAMProxy =
@@ -58,99 +169,5 @@ auto getFunctionAnalysisCachedResult(llvm::FunctionAnalysisManager &AM,
   return Result == nullptr ? nullptr : Result->get();
 }
 
-auto registerModulePass(const char *Name, size_t NameLen,
-                        Pass<ModuleIR>::Entrypoint Entrypoint) -> void {
-  assert(Name != nullptr && "Pass name cannot be NULL");
-  auto &Passes = Pass<ModuleIR>::PassMap;
-  const auto [it, inserted] =
-      Passes.try_emplace(llvm::StringRef{Name, NameLen}, Entrypoint);
-  assert(inserted && "Cannot register the same pass more than once");
-}
-
-auto registerFunctionPass(const char *Name, size_t NameLen,
-                          Pass<FunctionIR>::Entrypoint Entrypoint) -> void {
-  assert(Name != nullptr && "Pass name cannot be NULL");
-  auto &Passes = Pass<FunctionIR>::PassMap;
-  const auto [it, inserted] =
-      Passes.try_emplace(llvm::StringRef{Name, NameLen}, Entrypoint);
-  assert(inserted && "Cannot register the same pass more than once");
-}
-
-auto registerModuleAnalysis(llvm::AnalysisKey *Id,
-                            Analysis<ModuleIR>::Entrypoint Entrypoint) -> void {
-  auto &Analyses = Analysis<ModuleIR>::AnalysisMap;
-  const auto [it, inserted] = Analyses.try_emplace(Id, Entrypoint);
-  assert(inserted && "Cannot register the same analysis pass more than once");
-}
-
-auto registerFunctionAnalysis(llvm::AnalysisKey *Id,
-                              Analysis<FunctionIR>::Entrypoint Entrypoint)
-    -> void {
-  auto &Analyses = Analysis<FunctionIR>::AnalysisMap;
-  const auto [it, inserted] = Analyses.try_emplace(Id, Entrypoint);
-  assert(inserted && "Cannot register the same analysis pass more than once");
-}
-
 auto llvmPluginApiVersion() -> std::uint32_t { return LLVM_PLUGIN_API_VERSION; }
-
-auto llvmPluginRegistrar() -> void (*)(void *) {
-  return reinterpret_cast<void (*)(void *)>(+[](llvm::PassBuilder &Builder) {
-    // register module passes
-    Builder.registerPipelineParsingCallback(
-        [](llvm::StringRef PassName, llvm::ModulePassManager &PassManager,
-           llvm::ArrayRef<llvm::PassBuilder::PipelineElement> /*unused*/) {
-          const auto &Passes = Pass<ModuleIR>::PassMap;
-
-          const auto Entrypoint = Passes.find(PassName);
-          if (Entrypoint != Passes.end()) {
-            PassManager.addPass(Pass<ModuleIR>{Entrypoint->getValue()});
-            return true;
-          }
-
-          return false;
-        });
-
-    // register function passes
-    Builder.registerPipelineParsingCallback(
-        [](llvm::StringRef PassName, llvm::FunctionPassManager &PassManager,
-           llvm::ArrayRef<llvm::PassBuilder::PipelineElement> /*unused*/) {
-          const auto &Passes = Pass<FunctionIR>::PassMap;
-
-          const auto Entrypoint = Passes.find(PassName);
-          if (Entrypoint != Passes.end()) {
-            PassManager.addPass(Pass<FunctionIR>{Entrypoint->getValue()});
-            return true;
-          }
-
-          return false;
-        });
-
-    // register module analyses
-    Builder.registerAnalysisRegistrationCallback(
-        [](llvm::ModuleAnalysisManager &AM) {
-          auto &Analyses = Analysis<ModuleIR>::AnalysisMap;
-          const auto Lock =
-              std::lock_guard{Analysis<ModuleIR>::MutexCurrentKey};
-
-          for (const auto &Ana : Analyses) {
-            Analysis<ModuleIR>::CurrentKey = Ana.first;
-            AM.registerPass([&Ana] { return Analysis<ModuleIR>{Ana.second}; });
-          }
-        });
-
-    // register function analyses
-    Builder.registerAnalysisRegistrationCallback(
-        [](llvm::FunctionAnalysisManager &AM) {
-          const auto &Analyses = Analysis<FunctionIR>::AnalysisMap;
-          const auto Lock =
-              std::lock_guard{Analysis<FunctionIR>::MutexCurrentKey};
-
-          for (const auto &Ana : Analyses) {
-            Analysis<FunctionIR>::CurrentKey = Ana.first;
-            AM.registerPass(
-                [&Ana] { return Analysis<FunctionIR>{Ana.second}; });
-          }
-        });
-  });
-}
 }
