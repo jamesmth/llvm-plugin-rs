@@ -101,10 +101,11 @@ mod llvm_sys {
             match llvm_version(&binary_name) {
                 // we don't need strict LLVM version checking, `llvm-sys` already
                 // does it for us
-                Ok(_) => {
+                Ok(version) if LLVM_VERSION_FROM_FEATURES.0 as u64 == version.major => {
                     // Compatible version found. Nice.
                     return Some(binary_name);
                 }
+                Ok(_) => continue,
                 Err(ref e) if e.kind() == ErrorKind::NotFound => {
                     // Looks like we failed to execute any llvm-config. Keep
                     // searching.
