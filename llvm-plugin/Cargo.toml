@@ -1,6 +1,6 @@
 [package]
 name = "llvm-plugin"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["James Smith <jamesmth@proton.me>"]
 categories = ["development-tools::ffi"]
 description = "A wrapper for easily implementing out-of-source-tree LLVM plugins in Rust."
@@ -45,7 +45,7 @@ target-all = ["inkwell/target-all"]
 
 [dependencies]
 inkwell = { package = "llvm-plugin-inkwell", version = "0.1", features = ["internal-getters"] }
-llvm-plugin-macros = { path = "../llvm-plugin-macros", version = "0.1", optional = true }
+llvm-plugin-macros = { path = "../llvm-plugin-macros", version = "0.2", optional = true }
 
 [build-dependencies]
 cc = "1"
