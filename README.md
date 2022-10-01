@@ -10,28 +10,18 @@ llvm-plugin-rs
 This crate gives the ability to safely implement passes for the [new LLVM pass manager], by leveraging the strongly typed interface
 provided by [Inkwell].
 
-If you have never developed LLVM passes before, perhaps you should take a look at this [LLVM guide] before carrying on. It will
-give you a simple overview of the C++ API wrapped by this crate.
+If you have never developed LLVM passes before, you can take a look at the available [examples]. They will (hopefully) give you a
+better idea of how to use this crate.
 
 If you want a deeper understanding of the many concepts surrounding the new LLVM pass manager, you should read the [official LLVM
 documentation].
 
 [Inkwell]: https://github.com/TheDan64/inkwell
 [new LLVM pass manager]: https://blog.llvm.org/posts/2021-03-26-the-new-pass-manager/
-[LLVM guide]: https://llvm.org/docs/WritingAnLLVMNewPMPass.html
+[examples]: https://github.com/jamesmth/llvm-plugin-rs/tree/master/examples
 [official LLVM documentation]: https://llvm.org/docs/NewPassManager.html
 
 ## Usage
-
-Out-of-tree LLVM passes are plugins implemented as dynamically-linked libraries loaded by the [opt] tool. Therefore,
-you must add the following line in your `Cargo.toml`:
-
-[opt]: https://releases.llvm.org/14.0.0/docs/CommandGuide/opt.html
-
-```toml
-[lib]
-crate-type = ["cdylib"]
-```
 
 When importing this crate in your `Cargo.toml`, you will need to specify the LLVM version to use with a corresponding feature flag:
 
@@ -50,82 +40,86 @@ Supported versions:
 |    13.0.x    |      llvm13-0      | **&check;** | **&check;** | **&check;** |
 |    14.0.x    |      llvm14-0      | **&check;** | **&check;** | **&check;** |
 
-## Example
+## Getting Started
 
-A simple LLVM plugin which defines two passes, one being a transformation pass that queries the result of a second pass,
-an analysis one:
+An LLVM plugin is merely a dylib that is given a [PassBuilder] by the LLVM tool (e.g. [opt], [lld])
+loading it.
+Therefore, you must add the following line in your `Cargo.toml`:
+
+```toml
+[lib]
+crate-type = ["cdylib"]
+```
+
+A [PassBuilder] allows registering callbacks on specific actions being performed by the LLVM tool.
+
+For instance, the `--passes` parameter of [opt] allows specifying a custom pass pipeline to be run on a given IR module. A plugin
+could therefore register a callback for parsing an element of the given pipeline (e.g. a pass name), in order to insert a custom
+pass to run by [opt].
+
+The following code illustrates the idea:
 
 ```rust
-// Define an LLVM plugin (a name and a version is required). Only cdylib crates
-// should define plugins, and only one definition should be done per crate.
+use llvm_plugin::inkwell::module::Module;
+use llvm_plugin::{
+    LlvmModulePass, ModuleAnalysisManager, PassBuilder, PipelineParsing, PreservedAnalyses,
+};
+
+// A name and version is required.
 #[llvm_plugin::plugin(name = "plugin_name", version = "0.1")]
-mod plugin {
-    use llvm_plugin::{
-        LlvmModuleAnalysis, LlvmModulePass, ModuleAnalysisManager, PreservedAnalyses,
-    };
-    use llvm_plugin::inkwell::module::Module;
+fn plugin_registrar(builder: &mut PassBuilder) {
+    // Add a callback to parse a name from the textual representation of
+    // the pipeline to be run.
+    builder.add_module_pipeline_parsing_callback(|name, manager| {
+        if name == "custom-pass" {
+            // the input pipeline contains the name "custom-pass",
+            // so we add our custom pass to the pass manager
+            manager.add_pass(CustomPass);
 
-    // Must implement the `Default` trait.
-    #[derive(Default)]
-    struct Pass1;
-
-    // Define a transformation pass (a name is required). Such pass is allowed to
-    // mutate the LLVM IR. If it does, it should return `PreservedAnalysis::None`
-    // to notify the pass manager that all analyses are now invalidated.
-    #[pass(name = "pass_name")]
-    impl LlvmModulePass for Pass1 {
-        fn run_pass(
-            &self,
-            module: &mut Module,
-            manager: &ModuleAnalysisManager,
-        ) -> PreservedAnalyses {
-            // Ask the pass manager for the result of the analysis pass `Analysis1`
-            // defined further below. If the result is not in cache, the pass
-            // manager will call `Analysis1::run_analysis`.
-            let result = manager.get_result::<Analysis1>(module);
-
-            assert_eq!(result, "Hello World!");
-
-            // no modification was made on the module, so the pass manager doesn't have
-            // to recompute any analysis
-            PreservedAnalyses::All
+            // we notify the caller that we were able to parse
+            // the given name
+            PipelineParsing::Parsed
+        } else {
+            // in any other cases, we notify the caller that our
+            // callback wasn't able to parse the given name
+            PipelineParsing::NotParsed
         }
-    }
+    });
+}
 
-    // Must implement the `Default` trait.
-    #[derive(Default)]
-    struct Analysis1;
-
-    // Define an analysis pass. Such pass is not allowed to mutate the LLVM IR. It should
-    // be used only for inspection of the LLVM IR, and can return some result that will be
-    // efficiently cached by the pass manager (to prevent recomputing the same analysis
-    // every time its result is needed).
-    #[analysis]
-    impl LlvmModuleAnalysis for Analysis1 {
-        fn run_analysis(
-            &self,
-            module: &Module,
-            manager: &ModuleAnalysisManager,
-        ) -> String {
-            // .. inspect the LLVM IR of the module ..
-
-            "Hello World!".to_owned()
-        }
+struct CustomPass;
+impl LlvmModulePass for CustomPass {
+    fn run_pass(
+        &self,
+        module: &mut Module,
+        manager: &ModuleAnalysisManager
+    ) -> PreservedAnalyses {
+        // transform the IR
+        todo!()
     }
 }
 ```
 
-Once you compiled your custom plugin, you can use it during the compilation of C/C++ with the `opt` tool:
+Now, executing this command would run our custom pass on some input `module.bc`:
 
 ```bash
-$ clang -c -emit-llvm main.cc -o main.bc
-$ opt -load-pass-plugin=libplugin.so -passes="pass_name" main.bc -o main.bc
-$ llc main.bc -o main.s
-$ clang -static main.s -o main
+opt --load-pass-plugin=libplugin.so --passes=custom-pass module.bc -disable-output
 ```
+
+However, executing this command would not (`custom-pass2` cannot be parsed by our plugin):
+
+```bash
+opt --load-pass-plugin=libplugin.so --passes=custom-pass2 module.bc -disable-output
+```
+
+More callbacks are available, read the [documentation] for more details.
 
 To learn more about how to sequentially apply more than one pass, read this [opt guide].
 
+[opt]: https://www.llvm.org/docs/CommandGuide/opt.html
+[lld]: https://lld.llvm.org/
+[PassBuilder]: https://docs.rs/llvm-plugin/struct.PassBuilder.html
+[documentation]: https://docs.rs/llvm-plugin
 [opt guide]: https://llvm.org/docs/NewPassManager.html#invoking-opt
 
 ## Linux & MacOS Requirements
