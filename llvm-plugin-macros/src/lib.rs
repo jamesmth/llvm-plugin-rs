@@ -60,6 +60,9 @@ fn plugin_impl(attrs: TokenStream, input: TokenStream) -> syn::Result<TokenStrea
     let registrar_name = &func.sig.ident;
     let registrar_name_sys = format_ident!("{}_sys", registrar_name);
 
+    let name = name + "\0";
+    let version = version + "\0";
+
     Ok(quote! {
         #func
 
