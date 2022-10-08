@@ -3,9 +3,9 @@ llvm-plugin-rs
 
 [<img alt="version" src="https://img.shields.io/crates/v/llvm-plugin.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/llvm-plugin)
 [<img alt="doc" src="https://img.shields.io/badge/docs.rs-llvm--plugin-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/llvm-plugin)
-[<img alt="linux" src="https://img.shields.io/github/workflow/status/jamesmth/llvm-plugin-rs/Linux%20Test%20Suite/develop?label=linux&style=for-the-badge&logo=linux" height="20">](https://github.com/jamesmth/llvm-plugin-rs/actions/workflows/linux.yml?query=branch%3Adevelop)
-[<img alt="windows" src="https://img.shields.io/github/workflow/status/jamesmth/llvm-plugin-rs/Windows%20Test%20Suite/develop?label=windows&style=for-the-badge&logo=windows" height="20">](https://github.com/jamesmth/llvm-plugin-rs/actions/workflows/windows.yml?query=branch%3Adevelop)
-[<img alt="macos" src="https://img.shields.io/github/workflow/status/jamesmth/llvm-plugin-rs/MacOS%20Test%20Suite/develop?label=macos&style=for-the-badge&logo=apple" height="20">](https://github.com/jamesmth/llvm-plugin-rs/actions/workflows/macos.yml?query=branch%3Adevelop)
+[<img alt="linux" src="https://img.shields.io/github/workflow/status/jamesmth/llvm-plugin-rs/Linux%20Test%20Suite/master?label=linux&style=for-the-badge&logo=linux" height="20">](https://github.com/jamesmth/llvm-plugin-rs/actions/workflows/linux.yml?query=branch%3Amaster)
+[<img alt="windows" src="https://img.shields.io/github/workflow/status/jamesmth/llvm-plugin-rs/Windows%20Test%20Suite/master?label=windows&style=for-the-badge&logo=windows" height="20">](https://github.com/jamesmth/llvm-plugin-rs/actions/workflows/windows.yml?query=branch%3Amaster)
+[<img alt="macos" src="https://img.shields.io/github/workflow/status/jamesmth/llvm-plugin-rs/MacOS%20Test%20Suite/master?label=macos&style=for-the-badge&logo=apple" height="20">](https://github.com/jamesmth/llvm-plugin-rs/actions/workflows/macos.yml?query=branch%3Amaster)
 
 This crate gives the ability to safely implement passes for the [new LLVM pass manager], by leveraging the strongly typed interface
 provided by [Inkwell].
