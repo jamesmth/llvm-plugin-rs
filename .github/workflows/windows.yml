@@ -41,56 +41,11 @@ jobs:
             ${{ env.LLVM_INSTALL_PATH }}\include
           key: ${{ runner.os }}-llvm-${{ matrix.llvm-version[0] }}
 
-      - name: Install Patch Utility
+      - name: Download LLVM Binaries
         if: steps.cache-llvm.outputs.cache-hit != 'true'
         run: |
-          Invoke-WebRequest -UserAgent 'GithubCI' -outfile patch.zip  https://downloads.sourceforge.net/project/gnuwin32/patch/2.5.9-7/patch-2.5.9-7-bin.zip
-          7z x -oC:\patch patch.zip
-          echo C:\patch\bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-      - name: Download LLVM Sources
-        if: steps.cache-llvm.outputs.cache-hit != 'true'
-        run: |
-          Invoke-WebRequest -UserAgent 'GithubCI' -outfile llvm.src.tar.xz https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ matrix.llvm-version[1] }}/llvm-${{ matrix.llvm-version[1] }}.src.tar.xz
-          7z x llvm.src.tar.xz
-          7z x llvm.src.tar
-
-      - name: Patch LLVM Sources
-        if: steps.cache-llvm.outputs.cache-hit != 'true'
-        run: patch -p1 -i ..\ci\windows\llvm-${{ matrix.llvm-version[0] }}.patch -d llvm-${{ matrix.llvm-version[1] }}.src
-
-      - name: Install Ninja Generator
-        if: steps.cache-llvm.outputs.cache-hit != 'true'
-        uses: seanmiddleditch/gha-setup-ninja@master
-        with:
-          version: 1.11.0
-
-      - name: Setup MSVC
-        if: steps.cache-llvm.outputs.cache-hit != 'true'
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Compile & Install LLVM
-        if: steps.cache-llvm.outputs.cache-hit != 'true'
-        run: |
-          cd llvm-${{ matrix.llvm-version[1] }}.src
-          mkdir build
-          cd build
-          cmake .. `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_INSTALL_PREFIX=${{ env.LLVM_INSTALL_PATH }} `
-            -DLLVM_EXPORT_SYMBOLS_FOR_PLUGINS=ON `
-            -DLLVM_ENABLE_TERMINFO=OFF `
-            -DLLVM_ENABLE_ZLIB=OFF `
-            -DLLVM_INCLUDE_BENCHMARKS=OFF `
-            -DLLVM_INCLUDE_DOCS=OFF `
-            -DLLVM_INCLUDE_EXAMPLES=OFF `
-            -DLLVM_INCLUDE_GO_TESTS=OFF `
-            -DLLVM_INCLUDE_RUNTIMES=OFF `
-            -DLLVM_INCLUDE_TESTS=OFF `
-            -DLLVM_INCLUDE_UTILS=OFF `
-            -G Ninja
-          ninja install
-          copy lib\opt.lib ${{ env.LLVM_INSTALL_PATH }}\lib
+          Invoke-WebRequest -UserAgent 'GithubCI' -outfile llvm.7z https://github.com/jamesmth/llvm-project/releases/download/v${{ matrix.llvm-version[1] }}/llvm-${{ matrix.llvm-version[1] }}-windows.7z
+          7z x -oC: llvm.7z
 
       - name: Build Tests
         run: |
