@@ -9,6 +9,59 @@
 #include "common.hh"
 #include "pass.hh"
 
+#ifdef LLVM14_0
+#include <llvm/Passes/OptimizationLevel.h>
+using LlvmOptLevel = llvm::OptimizationLevel;
+#else
+using LlvmOptLevel = llvm::PassBuilder::OptimizationLevel;
+#endif
+
+enum class OptimizationLevel { kO0, kO1, kO2, kO3, kOs, kOz };
+
+auto getFFIOptimizationLevel(LlvmOptLevel Opt) -> OptimizationLevel {
+#ifdef LLVM10_0
+  if (Opt == LlvmOptLevel::O0) {
+    return OptimizationLevel::kO0;
+  }
+  if (Opt == LlvmOptLevel::O1) {
+    return OptimizationLevel::kO1;
+  }
+  if (Opt == LlvmOptLevel::O2) {
+    return OptimizationLevel::kO2;
+  }
+  if (Opt == LlvmOptLevel::O3) {
+    return OptimizationLevel::kO3;
+  }
+  if (Opt == LlvmOptLevel::Os) {
+    return OptimizationLevel::kOs;
+  }
+#else
+  // Starting from LLVM-11, llvm::OptimizationLevel::Ox is no longer
+  // an enum but a global static. Using these global statics on Windows
+  // would not compile, because an LLVM plugin links to opt.exe. The
+  // later doesn't export such symbols.
+  if (Opt.getSpeedupLevel() == 0 && Opt.getSizeLevel() == 0) {
+    return OptimizationLevel::kO0;
+  }
+  if (Opt.getSpeedupLevel() == 1 && Opt.getSizeLevel() == 0) {
+    return OptimizationLevel::kO1;
+  }
+  if (Opt.getSpeedupLevel() == 2 && Opt.getSizeLevel() == 0) {
+    return OptimizationLevel::kO2;
+  }
+  if (Opt.getSpeedupLevel() == 3 && Opt.getSizeLevel() == 0) {
+    return OptimizationLevel::kO3;
+  }
+  if (Opt.getSpeedupLevel() == 2 && Opt.getSizeLevel() == 1) {
+    return OptimizationLevel::kOs;
+  }
+  if (Opt.getSpeedupLevel() == 2 && Opt.getSizeLevel() == 2) {
+    return OptimizationLevel::kOz;
+  }
+#endif
+  return OptimizationLevel::kOz;
+}
+
 extern "C" {
 auto moduleAnalysisManagerRegisterPass(
     llvm::ModuleAnalysisManager &AM, Analysis<ModuleIR>::DataPtr AnalysisData,
@@ -34,10 +87,25 @@ auto functionAnalysisManagerRegisterPass(
   });
 }
 
+auto passBuilderAddPeepholeEPCallback(
+    llvm::PassBuilder &Builder, const void *DataPtr,
+    void (*Deleter)(const void *),
+    void (*Callback)(const void *, llvm::FunctionPassManager &,
+                     OptimizationLevel)) -> void {
+  const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
+
+  Builder.registerPeepholeEPCallback(
+      [Data = std::move(Data), Callback](llvm::FunctionPassManager &PassManager,
+                                         LlvmOptLevel Opt) {
+        const auto OptFFI = getFFIOptimizationLevel(Opt);
+        Callback(Data.get(), PassManager, OptFFI);
+      });
+}
+
 auto passBuilderAddModuleAnalysisRegistrationCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
-    bool (*Callback)(const void *, llvm::ModuleAnalysisManager &)) -> void {
+    void (*Callback)(const void *, llvm::ModuleAnalysisManager &)) -> void {
   const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
 
   Builder.registerAnalysisRegistrationCallback(
@@ -49,7 +117,7 @@ auto passBuilderAddModuleAnalysisRegistrationCallback(
 auto passBuilderAddFunctionAnalysisRegistrationCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
-    bool (*Callback)(const void *, llvm::FunctionAnalysisManager &)) -> void {
+    void (*Callback)(const void *, llvm::FunctionAnalysisManager &)) -> void {
   const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
 
   Builder.registerAnalysisRegistrationCallback(

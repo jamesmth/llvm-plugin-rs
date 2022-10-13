@@ -82,3 +82,8 @@ jobs:
             --passes="mpass,function(fpass)" \
             tests/test.ll \
             -disable-output
+          opt \
+            --load-pass-plugin="${{ env.PLUGINS_PATH }}/libplugin6.dylib" \
+            --passes="default<O3>" \
+            tests/test.ll \
+            -disable-output

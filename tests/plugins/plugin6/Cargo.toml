@@ -1,0 +1,37 @@
+[package]
+name = "plugin6"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+default = ["target-all"]
+
+llvm10-0 = ["llvm-plugin/llvm10-0"]
+llvm11-0 = ["llvm-plugin/llvm11-0"]
+llvm12-0 = ["llvm-plugin/llvm12-0"]
+llvm13-0 = ["llvm-plugin/llvm13-0"]
+llvm14-0 = ["llvm-plugin/llvm14-0"]
+
+target-x86 = ["llvm-plugin/target-x86"]
+target-arm = ["llvm-plugin/target-arm"]
+target-mips = ["llvm-plugin/target-mips"]
+target-aarch64 = ["llvm-plugin/target-aarch64"]
+target-amdgpu = ["llvm-plugin/target-amdgpu"]
+target-systemz = ["llvm-plugin/target-systemz"]
+target-hexagon = ["llvm-plugin/target-hexagon"]
+target-nvptx = ["llvm-plugin/target-nvptx"]
+target-msp430 = ["llvm-plugin/target-msp430"]
+target-xcore = ["llvm-plugin/target-xcore"]
+target-powerpc = ["llvm-plugin/target-powerpc"]
+target-sparc = ["llvm-plugin/target-sparc"]
+target-bpf = ["llvm-plugin/target-bpf"]
+target-lanai = ["llvm-plugin/target-lanai"]
+target-webassembly = ["llvm-plugin/target-webassembly"]
+target-riscv = ["llvm-plugin/target-riscv"]
+target-all = ["llvm-plugin/target-all"]
+
+[dependencies]
+llvm-plugin = { path = "../../../llvm-plugin", default-features = false, features = ["macros"] }

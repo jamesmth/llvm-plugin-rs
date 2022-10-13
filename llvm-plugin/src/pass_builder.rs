@@ -176,6 +176,51 @@ impl PassBuilder {
             )
         }
     }
+
+    /// Register a new callback to be triggered at the peephole
+    /// extension point.
+    ///
+    /// # From the LLVM documentation
+    ///
+    /// This extension point allows adding passes that perform peephole
+    /// optimizations similar to the instruction combiner.
+    ///
+    /// These passes will be inserted after each instance of the instruction
+    /// combiner pass.
+    pub fn add_peephole_ep_callback<T>(&mut self, cb: T)
+    where
+        T: Fn(&mut FunctionPassManager, OptimizationLevel),
+    {
+        let cb = Box::new(cb);
+
+        extern "C" fn callback_deleter<T>(cb: *const c_void) {
+            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
+        }
+
+        extern "C" fn callback_entrypoint<T>(
+            cb: *const c_void,
+            manager: *mut c_void,
+            opt: OptimizationLevel,
+        ) where
+            T: Fn(&mut FunctionPassManager, OptimizationLevel),
+        {
+            let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
+            let mut manager = unsafe { FunctionPassManager::from_raw(manager) };
+
+            cb(&mut manager, opt);
+
+            Box::into_raw(cb);
+        }
+
+        unsafe {
+            super::passBuilderAddPeepholeEPCallback(
+                self.inner,
+                Box::into_raw(cb).cast(),
+                callback_deleter::<T>,
+                callback_entrypoint::<T>,
+            )
+        }
+    }
 }
 
 /// Enum describing whether a pipeline parsing callback
@@ -187,4 +232,33 @@ pub enum PipelineParsing {
 
     /// The pipeline element wasn't parsed.
     NotParsed,
+}
+
+/// Enum for the LLVM-provided high-level optimization levels.
+///
+/// Each level has a specific goal and rationale.
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub enum OptimizationLevel {
+    /// This level disables as many optimizations as possible.
+    O0,
+
+    /// This level optimizes quickly without destroying debuggability.
+    O1,
+
+    /// This level optimizes for fast execution as much as possible
+    /// without triggering significant incremental compile time or
+    /// code size growth.
+    O2,
+
+    /// This level optimizes for fast execution as much as possible.
+    O3,
+
+    /// This level is similar to **O2** but tries to optimize
+    /// for small code size instead of fast execution without
+    /// triggering significant incremental execution time slowdowns.
+    Os,
+
+    /// This level  will optimize for code size at any and all costs.
+    Oz,
 }

@@ -32,6 +32,12 @@ fn main() {
     build.define("LLVM10_0", None);
     #[cfg(feature = "llvm11-0")]
     build.define("LLVM11_0", None);
+    #[cfg(feature = "llvm12-0")]
+    build.define("LLVM12_0", None);
+    #[cfg(feature = "llvm13-0")]
+    build.define("LLVM13_0", None);
+    #[cfg(feature = "llvm14-0")]
+    build.define("LLVM14_0", None);
 
     build.warnings(false);
     build.compile("llvm-plugin-cpp");
