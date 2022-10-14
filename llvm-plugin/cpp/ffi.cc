@@ -87,6 +87,24 @@ auto functionAnalysisManagerRegisterPass(
   });
 }
 
+#ifdef LLVM10_0
+#else
+auto passBuilderAddOptimizerLastEPCallback(
+    llvm::PassBuilder &Builder, const void *DataPtr,
+    void (*Deleter)(const void *),
+    void (*Callback)(const void *, llvm::ModulePassManager &,
+                     OptimizationLevel)) -> void {
+  const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
+
+  Builder.registerOptimizerLastEPCallback(
+      [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
+                                         LlvmOptLevel Opt) {
+        const auto OptFFI = getFFIOptimizationLevel(Opt);
+        Callback(Data.get(), PassManager, OptFFI);
+      });
+}
+#endif
+
 #if defined(LLVM10_0) || defined(LLVM11_0)
 #else
 auto passBuilderAddPipelineEarlySimplificationEPCallback(

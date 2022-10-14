@@ -33,6 +33,17 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         assert!(matches!(opt, OptimizationLevel::O3));
         manager.add_pass(PipelineEarlySimpPass);
     });
+
+    #[cfg(any(
+        feature = "llvm11-0",
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0"
+    ))]
+    builder.add_optimizer_last_ep_callback(|manager, opt| {
+        assert!(matches!(opt, OptimizationLevel::O3));
+        manager.add_pass(OptimizerLastPass);
+    });
 }
 
 static mut PEEPHOLE_PASS_CALLED: u32 = 0;
@@ -132,5 +143,25 @@ impl LlvmModulePass for PipelineEarlySimpPass {
 impl Drop for PipelineEarlySimpPass {
     fn drop(&mut self) {
         assert!(unsafe { PIPE_EARLY_PASS_CALLED } > 0);
+    }
+}
+
+static mut OPT_LAST_PASS_CALLED: u32 = 0;
+
+struct OptimizerLastPass;
+impl LlvmModulePass for OptimizerLastPass {
+    fn run_pass(
+        &self,
+        _module: &mut Module,
+        _manager: &ModuleAnalysisManager,
+    ) -> PreservedAnalyses {
+        unsafe { OPT_LAST_PASS_CALLED += 1 };
+        PreservedAnalyses::All
+    }
+}
+
+impl Drop for OptimizerLastPass {
+    fn drop(&mut self) {
+        assert!(unsafe { OPT_LAST_PASS_CALLED } > 0);
     }
 }
