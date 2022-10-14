@@ -4,6 +4,13 @@ pub type AnalysisKey = *const u8;
 
 #[link(name = "llvm-plugin-cpp")]
 extern "C" {
+    pub(crate) fn passBuilderAddScalarOptimizerLateEPCallback(
+        builder: *mut c_void,
+        cb: *const c_void,
+        cb_deleter: extern "C" fn(*const c_void),
+        cb_sys: extern "C" fn(*const c_void, *mut c_void, crate::OptimizationLevel),
+    );
+
     pub(crate) fn passBuilderAddPeepholeEPCallback(
         builder: *mut c_void,
         cb: *const c_void,

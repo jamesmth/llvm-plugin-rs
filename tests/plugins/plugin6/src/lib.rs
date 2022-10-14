@@ -7,26 +7,51 @@ use llvm_plugin::{
 fn plugin_registrar(builder: &mut PassBuilder) {
     builder.add_peephole_ep_callback(|manager, opt| {
         assert!(matches!(opt, OptimizationLevel::O3));
-        manager.add_pass(Pass);
+        manager.add_pass(PeepholePass);
+    });
+
+    builder.add_scalar_optimizer_late_ep_callback(|manager, opt| {
+        assert!(matches!(opt, OptimizationLevel::O3));
+        manager.add_pass(OptimizerLatePass);
     });
 }
 
-static mut PASS_CALLED: u32 = 0;
+static mut PEEPHOLE_PASS_CALLED: u32 = 0;
 
-struct Pass;
-impl LlvmFunctionPass for Pass {
+struct PeepholePass;
+impl LlvmFunctionPass for PeepholePass {
     fn run_pass(
         &self,
         _function: &mut FunctionValue,
         _manager: &FunctionAnalysisManager,
     ) -> PreservedAnalyses {
-        unsafe { PASS_CALLED += 1 };
+        unsafe { PEEPHOLE_PASS_CALLED += 1 };
         PreservedAnalyses::All
     }
 }
 
-impl Drop for Pass {
+impl Drop for PeepholePass {
     fn drop(&mut self) {
-        assert!(unsafe { PASS_CALLED } > 0);
+        assert!(unsafe { PEEPHOLE_PASS_CALLED } > 0);
+    }
+}
+
+static mut OPT_LATE_PASS_CALLED: u32 = 0;
+
+struct OptimizerLatePass;
+impl LlvmFunctionPass for OptimizerLatePass {
+    fn run_pass(
+        &self,
+        _function: &mut FunctionValue,
+        _manager: &FunctionAnalysisManager,
+    ) -> PreservedAnalyses {
+        unsafe { OPT_LATE_PASS_CALLED += 1 };
+        PreservedAnalyses::All
+    }
+}
+
+impl Drop for OptimizerLatePass {
+    fn drop(&mut self) {
+        assert!(unsafe { OPT_LATE_PASS_CALLED } > 0);
     }
 }
