@@ -27,6 +27,12 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         assert!(matches!(opt, OptimizationLevel::O3));
         manager.add_pass(PipelineStartPass);
     });
+
+    #[cfg(any(feature = "llvm12-0", feature = "llvm13-0", feature = "llvm14-0"))]
+    builder.add_pipeline_early_simplification_ep_callback(|manager, opt| {
+        assert!(matches!(opt, OptimizationLevel::O3));
+        manager.add_pass(PipelineEarlySimpPass);
+    });
 }
 
 static mut PEEPHOLE_PASS_CALLED: u32 = 0;
@@ -106,5 +112,25 @@ impl LlvmModulePass for PipelineStartPass {
 impl Drop for PipelineStartPass {
     fn drop(&mut self) {
         assert!(unsafe { PIPE_START_PASS_CALLED } > 0);
+    }
+}
+
+static mut PIPE_EARLY_PASS_CALLED: u32 = 0;
+
+struct PipelineEarlySimpPass;
+impl LlvmModulePass for PipelineEarlySimpPass {
+    fn run_pass(
+        &self,
+        _module: &mut Module,
+        _manager: &ModuleAnalysisManager,
+    ) -> PreservedAnalyses {
+        unsafe { PIPE_EARLY_PASS_CALLED += 1 };
+        PreservedAnalyses::All
+    }
+}
+
+impl Drop for PipelineEarlySimpPass {
+    fn drop(&mut self) {
+        assert!(unsafe { PIPE_EARLY_PASS_CALLED } > 0);
     }
 }
