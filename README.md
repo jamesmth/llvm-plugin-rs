@@ -118,7 +118,7 @@ To learn more about how to sequentially apply more than one pass, read this [opt
 
 [opt]: https://www.llvm.org/docs/CommandGuide/opt.html
 [lld]: https://lld.llvm.org/
-[PassBuilder]: https://docs.rs/llvm-plugin/struct.PassBuilder.html
+[PassBuilder]: https://docs.rs/llvm-plugin/latest/llvm_plugin/struct.PassBuilder.html
 [documentation]: https://docs.rs/llvm-plugin
 [opt guide]: https://llvm.org/docs/NewPassManager.html#invoking-opt
 
