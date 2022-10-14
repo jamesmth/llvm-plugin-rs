@@ -14,6 +14,11 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         assert!(matches!(opt, OptimizationLevel::O3));
         manager.add_pass(OptimizerLatePass);
     });
+
+    builder.add_vectorizer_start_ep_callback(|manager, opt| {
+        assert!(matches!(opt, OptimizationLevel::O3));
+        manager.add_pass(VectorizerStartPass);
+    });
 }
 
 static mut PEEPHOLE_PASS_CALLED: u32 = 0;
@@ -53,5 +58,25 @@ impl LlvmFunctionPass for OptimizerLatePass {
 impl Drop for OptimizerLatePass {
     fn drop(&mut self) {
         assert!(unsafe { OPT_LATE_PASS_CALLED } > 0);
+    }
+}
+
+static mut VEC_START_PASS_CALLED: u32 = 0;
+
+struct VectorizerStartPass;
+impl LlvmFunctionPass for VectorizerStartPass {
+    fn run_pass(
+        &self,
+        _function: &mut FunctionValue,
+        _manager: &FunctionAnalysisManager,
+    ) -> PreservedAnalyses {
+        unsafe { VEC_START_PASS_CALLED += 1 };
+        PreservedAnalyses::All
+    }
+}
+
+impl Drop for VectorizerStartPass {
+    fn drop(&mut self) {
+        assert!(unsafe { VEC_START_PASS_CALLED } > 0);
     }
 }

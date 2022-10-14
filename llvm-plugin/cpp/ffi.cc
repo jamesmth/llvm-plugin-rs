@@ -87,6 +87,21 @@ auto functionAnalysisManagerRegisterPass(
   });
 }
 
+auto passBuilderAddVectorizerStartEPCallback(
+    llvm::PassBuilder &Builder, const void *DataPtr,
+    void (*Deleter)(const void *),
+    void (*Callback)(const void *, llvm::FunctionPassManager &,
+                     OptimizationLevel)) -> void {
+  const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
+
+  Builder.registerVectorizerStartEPCallback(
+      [Data = std::move(Data), Callback](llvm::FunctionPassManager &PassManager,
+                                         LlvmOptLevel Opt) {
+        const auto OptFFI = getFFIOptimizationLevel(Opt);
+        Callback(Data.get(), PassManager, OptFFI);
+      });
+}
+
 auto passBuilderAddScalarOptimizerLateEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),

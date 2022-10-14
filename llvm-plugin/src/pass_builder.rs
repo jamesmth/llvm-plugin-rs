@@ -264,6 +264,49 @@ impl PassBuilder {
             )
         }
     }
+
+    /// Register a new callback to be triggered at the vectorizer
+    /// start extension point.
+    ///
+    /// # From the LLVM documentation
+    ///
+    /// This extension point allows adding optimization passes before
+    /// the vectorizer and other highly target specific optimization
+    /// passes are executed.
+    pub fn add_vectorizer_start_ep_callback<T>(&mut self, cb: T)
+    where
+        T: Fn(&mut FunctionPassManager, OptimizationLevel),
+    {
+        let cb = Box::new(cb);
+
+        extern "C" fn callback_deleter<T>(cb: *const c_void) {
+            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
+        }
+
+        extern "C" fn callback_entrypoint<T>(
+            cb: *const c_void,
+            manager: *mut c_void,
+            opt: OptimizationLevel,
+        ) where
+            T: Fn(&mut FunctionPassManager, OptimizationLevel),
+        {
+            let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
+            let mut manager = unsafe { FunctionPassManager::from_raw(manager) };
+
+            cb(&mut manager, opt);
+
+            Box::into_raw(cb);
+        }
+
+        unsafe {
+            super::passBuilderAddVectorizerStartEPCallback(
+                self.inner,
+                Box::into_raw(cb).cast(),
+                callback_deleter::<T>,
+                callback_entrypoint::<T>,
+            )
+        }
+    }
 }
 
 /// Enum describing whether a pipeline parsing callback
