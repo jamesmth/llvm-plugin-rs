@@ -307,6 +307,50 @@ impl PassBuilder {
             )
         }
     }
+
+    /// Register a new callback to be triggered at the pipeline
+    /// start extension point.
+    ///
+    /// # From the LLVM documentation
+    ///
+    /// This extension point allows adding optimization once at the start
+    /// of the pipeline. This does not apply to 'backend' compiles (LTO and
+    /// ThinLTO link-time pipelines).
+    #[cfg(any(feature = "llvm12-0", feature = "llvm13-0", feature = "llvm14-0"))]
+    pub fn add_pipeline_start_ep_callback<T>(&mut self, cb: T)
+    where
+        T: Fn(&mut ModulePassManager, OptimizationLevel),
+    {
+        let cb = Box::new(cb);
+
+        extern "C" fn callback_deleter<T>(cb: *const c_void) {
+            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
+        }
+
+        extern "C" fn callback_entrypoint<T>(
+            cb: *const c_void,
+            manager: *mut c_void,
+            opt: OptimizationLevel,
+        ) where
+            T: Fn(&mut ModulePassManager, OptimizationLevel),
+        {
+            let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
+            let mut manager = unsafe { ModulePassManager::from_raw(manager) };
+
+            cb(&mut manager, opt);
+
+            Box::into_raw(cb);
+        }
+
+        unsafe {
+            super::passBuilderAddPipelineStartEPCallback(
+                self.inner,
+                Box::into_raw(cb).cast(),
+                callback_deleter::<T>,
+                callback_entrypoint::<T>,
+            )
+        }
+    }
 }
 
 /// Enum describing whether a pipeline parsing callback

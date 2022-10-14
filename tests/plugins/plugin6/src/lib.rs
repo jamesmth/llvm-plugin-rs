@@ -1,6 +1,8 @@
+use llvm_plugin::inkwell::module::Module;
 use llvm_plugin::inkwell::values::FunctionValue;
 use llvm_plugin::{
-    FunctionAnalysisManager, LlvmFunctionPass, OptimizationLevel, PassBuilder, PreservedAnalyses,
+    FunctionAnalysisManager, LlvmFunctionPass, LlvmModulePass, ModuleAnalysisManager,
+    OptimizationLevel, PassBuilder, PreservedAnalyses,
 };
 
 #[llvm_plugin::plugin(name = "llvm_plugin", version = "0.1")]
@@ -18,6 +20,12 @@ fn plugin_registrar(builder: &mut PassBuilder) {
     builder.add_vectorizer_start_ep_callback(|manager, opt| {
         assert!(matches!(opt, OptimizationLevel::O3));
         manager.add_pass(VectorizerStartPass);
+    });
+
+    #[cfg(any(feature = "llvm12-0", feature = "llvm13-0", feature = "llvm14-0"))]
+    builder.add_pipeline_start_ep_callback(|manager, opt| {
+        assert!(matches!(opt, OptimizationLevel::O3));
+        manager.add_pass(PipelineStartPass);
     });
 }
 
@@ -78,5 +86,25 @@ impl LlvmFunctionPass for VectorizerStartPass {
 impl Drop for VectorizerStartPass {
     fn drop(&mut self) {
         assert!(unsafe { VEC_START_PASS_CALLED } > 0);
+    }
+}
+
+static mut PIPE_START_PASS_CALLED: u32 = 0;
+
+struct PipelineStartPass;
+impl LlvmModulePass for PipelineStartPass {
+    fn run_pass(
+        &self,
+        _module: &mut Module,
+        _manager: &ModuleAnalysisManager,
+    ) -> PreservedAnalyses {
+        unsafe { PIPE_START_PASS_CALLED += 1 };
+        PreservedAnalyses::All
+    }
+}
+
+impl Drop for PipelineStartPass {
+    fn drop(&mut self) {
+        assert!(unsafe { PIPE_START_PASS_CALLED } > 0);
     }
 }
