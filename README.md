@@ -146,7 +146,12 @@ distributed on `apt` and `homebrew` registeries.
  </details>
 
 If you don't use any of these package managers, you can download a compatible LLVM toolchain from
-[here](https://github.com/jamesmth/llvm-project/releases) instead.
+this [LLVM fork] instead. In this case, don't forget to update your `PATH` environment variable with
+your LLVM toolchain path, or use the `LLVM_SYS_XXX_PREFIX` environment variable to locate your toolchain.
+
+For instance, if your LLVM-14 toolchain is located at `~/llvm`, you should set either of the following:
+- `PATH=$PATH;$HOME/llvm/bin`
+- `LLVM_SYS_140_PREFIX=$HOME/llvm`
 
 ## Windows Requirements
 
@@ -159,6 +164,12 @@ environment variable to locate your toolchain.
 For instance, if your LLVM-14 toolchain is located at `C:\llvm`, you should set either of the following:
 - `PATH=$PATH;C:\llvm\bin`
 - `LLVM_SYS_140_PREFIX=C:\llvm`
+
+## Compiling Rust/C++ code with custom LLVM plugins
+
+This [LLVM fork] explains how to do so, and provides LLVM toolchains that will make the process easier.
+
+[LLVM fork]: https://github.com/jamesmth/llvm-project
 
 ## Missing Features
 
