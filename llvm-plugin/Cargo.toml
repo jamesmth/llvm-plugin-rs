@@ -19,6 +19,11 @@ rustdoc-args = ["--cfg", "docsrs"]
 default = ["macros", "target-all"]
 macros = ["llvm-plugin-macros"]
 
+# On Windows, llvm plugins require linking with either opt.lib,
+# or lld.lib.
+win-link-opt = []
+win-link-lld = []
+
 llvm10-0 = ["inkwell/llvm10-0-no-llvm-linking"]
 llvm11-0 = ["inkwell/llvm11-0-no-llvm-linking"]
 llvm12-0 = ["inkwell/llvm12-0-no-llvm-linking"]

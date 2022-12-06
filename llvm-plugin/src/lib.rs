@@ -86,6 +86,13 @@
 //!
 //! More callbacks are available, read the [PassBuilder] documentation for more details.
 //!
+//! # A note on Windows
+//!
+//! On this platform, LLVM plugins need the LLVM symbols directly from the executable loading
+//! them (most of the time `opt.exe` or `lld.exe`). Therefore, you need to specify the
+//! additional feature `win-link-opt` or `win-link-lld` while building a plugin. The former
+//! will link the plugin to `opt.lib`, the latter being for `lld.lib`.
+//!
 //! [opt]: https://www.llvm.org/docs/CommandGuide/opt.html
 //! [lld]: https://lld.llvm.org/
 
@@ -311,6 +318,18 @@ pub use llvm_plugin_macros::*;
 // See https://github.com/jamesmth/llvm-plugin-rs/issues/3
 #[cfg(all(target_os = "windows", feature = "llvm10-0"))]
 compile_error!("LLVM 10 not supported on Windows");
+
+#[cfg(all(
+    target_os = "windows",
+    any(
+        all(feature = "win-link-opt", feature = "win-link-lld"),
+        all(not(feature = "win-link-opt"), not(feature = "win-link-lld"))
+    )
+))]
+compile_error!(
+    "Either `win-link-opt` feature or `win-link-lld` feature
+    is needed on Windows (not both)."
+);
 
 // Taken from llvm-sys source code.
 //

@@ -53,7 +53,7 @@ jobs:
             --manifest-path tests\plugins\Cargo.toml `
             -p plugin* `
             --no-default-features `
-            --features target-x86,llvm${{ matrix.llvm-version[2] }}
+            --features target-x86,llvm${{ matrix.llvm-version[2] }},win-link-opt
 
       - name: Run Tests
         run: |

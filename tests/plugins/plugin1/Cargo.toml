@@ -8,6 +8,7 @@ crate-type = ["cdylib"]
 
 [features]
 default = ["target-all"]
+win-link-opt = ["llvm-plugin/win-link-opt"]
 
 llvm10-0 = ["llvm-plugin/llvm10-0"]
 llvm11-0 = ["llvm-plugin/llvm11-0"]

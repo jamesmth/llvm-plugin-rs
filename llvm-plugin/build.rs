@@ -54,7 +54,12 @@ fn main() {
         let libdir = llvm_sys::llvm_config("--libdir");
         println!("cargo:rustc-link-search=native={}", libdir.trim());
         println!("cargo:rustc-link-lib=dylib=LLVM-C");
+
+        #[cfg(feature = "win-link-opt")]
         println!("cargo:rustc-link-lib=dylib=opt");
+
+        #[cfg(feature = "win-link-lld")]
+        println!("cargo:rustc-link-lib=dylib=lld");
     }
 
     println!("cargo:rerun-if-changed=cpp");
