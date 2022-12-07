@@ -6,8 +6,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  windows-tests:
-    name: "LLVM ${{ matrix.llvm-version[0] }} Windows"
+  windows-tests-opt:
+    name: "LLVM/OPT ${{ matrix.llvm-version[0] }} Windows"
     runs-on: windows-latest
     env:
       LLVM_INSTALL_PATH: C:\LLVM
@@ -39,7 +39,7 @@ jobs:
             ${{ env.LLVM_INSTALL_PATH }}\lib\opt.lib
             ${{ env.LLVM_INSTALL_PATH }}\lib\LLVM-C.lib
             ${{ env.LLVM_INSTALL_PATH }}\include
-          key: ${{ runner.os }}-llvm-${{ matrix.llvm-version[0] }}
+          key: ${{ runner.os }}-llvm-${{ matrix.llvm-version[0] }}-opt
 
       - name: Download LLVM Binaries
         if: steps.cache-llvm.outputs.cache-hit != 'true'
@@ -87,3 +87,63 @@ jobs:
             --passes="default<O3>" `
             tests/test.ll `
             -disable-output
+
+  windows-tests-lld:
+    name: "LLVM/LLD ${{ matrix.llvm-version[0] }} Windows"
+    runs-on: windows-latest
+    env:
+      LLVM_INSTALL_PATH: C:\LLVM
+      PLUGINS_PATH: tests\plugins\target\debug
+    strategy:
+      matrix:
+        llvm-version:
+          - ["13", "13-0", "1.59", "v13.0.0-rust-1.59/llvm-lld-13.0.0-rust-1.59-windows.7z"]
+          - ["14", "14-0", "1.64", "v14.0.6-rust-1.64/llvm-lld-14.0.6-rust-1.64-windows.7z"]
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Setup LLVM Installation Path
+        run: |
+          mkdir ${{ env.LLVM_INSTALL_PATH }}
+          echo ${{ env.LLVM_INSTALL_PATH }}\bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Check LLVM Artifacts In Cache
+        id: cache-llvm
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.LLVM_INSTALL_PATH }}\bin\llvm-config.exe
+            ${{ env.LLVM_INSTALL_PATH }}\bin\lld.exe
+            ${{ env.LLVM_INSTALL_PATH }}\bin\LLVM-C.dll
+            ${{ env.LLVM_INSTALL_PATH }}\lib\lld.lib
+            ${{ env.LLVM_INSTALL_PATH }}\lib\LLVM-C.lib
+            ${{ env.LLVM_INSTALL_PATH }}\include
+          key: ${{ runner.os }}-llvm-${{ matrix.llvm-version[0] }}-lld
+
+      - name: Download LLVM Binaries
+        if: steps.cache-llvm.outputs.cache-hit != 'true'
+        run: |
+          Invoke-WebRequest -UserAgent 'GithubCI' -outfile llvm.7z https://github.com/jamesmth/llvm-project/releases/download/${{ matrix.llvm-version[3] }}
+          7z x -oC: llvm.7z
+
+      - name: Build Tests
+        run: |
+          cargo b `
+            --manifest-path tests\plugins\Cargo.toml `
+            -p plugin*-lld `
+            --no-default-features `
+            --features target-x86,llvm${{ matrix.llvm-version[1] }},win-link-lld
+
+      - name: Run Tests
+        run: |
+          rustup install ${{ matrix.llvm-version[2] }}
+          rustup default ${{ matrix.llvm-version[2] }}
+          $env:RUSTFLAGS=" `
+            -Clinker-plugin-lto `
+            -Clinker=${{ env.LLVM_INSTALL_PATH }}\bin\lld.exe `
+            -Clink-arg=/load-pass-plugin:$env:GITHUB_WORKSPACE\${{ env.PLUGINS_PATH }}\plugin1_lld.dll `
+            -Clink-arg=/lto-newpm-passes:mpass `
+          "
+          cargo b --manifest-path tests\test-rust\Cargo.toml --release
+          $(cat C:\rust.ll) -eq "1"

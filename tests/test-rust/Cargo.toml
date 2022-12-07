@@ -1,0 +1,11 @@
+[workspace]
+
+[package]
+name = "test-rust"
+version = "0.1.0"
+edition = "2018" # retrocompatibility required
+
+[dependencies]
+
+[profile.release]
+lto = true

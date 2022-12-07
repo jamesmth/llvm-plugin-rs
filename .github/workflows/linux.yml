@@ -6,8 +6,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  linux-tests:
-    name: "LLVM ${{ matrix.llvm-version[0] }} Linux"
+  linux-tests-opt:
+    name: "LLVM/OPT ${{ matrix.llvm-version[0] }} Linux"
     runs-on: ubuntu-latest
     env:
       LLVM_INSTALL_PATH: ~/llvm
@@ -37,8 +37,9 @@ jobs:
             ${{ env.LLVM_INSTALL_PATH }}/bin/llvm-config
             ${{ env.LLVM_INSTALL_PATH }}/bin/opt
             ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM-${{ matrix.llvm-version[0] }}.so
+            ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM.so
             ${{ env.LLVM_INSTALL_PATH }}/include
-          key: ${{ runner.os }}-llvm-${{ matrix.llvm-version[0] }}
+          key: ${{ runner.os }}-llvm-${{ matrix.llvm-version[0] }}-opt
 
       - name: Download LLVM Binaries
         if: steps.cache-llvm.outputs.cache-hit != 'true'
@@ -48,7 +49,6 @@ jobs:
 
       - name: Build Tests
         run: |
-          ln -s libLLVM-${{ matrix.llvm-version[0] }}.so ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM.so || true
           cargo b \
             --manifest-path tests/plugins/Cargo.toml \
             -p plugin* \
@@ -87,3 +87,68 @@ jobs:
             --passes="default<O3>" \
             tests/test.ll \
             -disable-output
+
+  linux-tests-lld:
+    name: "LLVM/LLD ${{ matrix.llvm-version[0] }} Linux"
+    runs-on: ubuntu-latest
+    env:
+      LLVM_INSTALL_PATH: ~/llvm
+      PLUGINS_PATH: tests/plugins/target/debug
+    strategy:
+      matrix:
+        llvm-version:
+          - ["11", "11-0", "1.51", "v11.0.1-rust-1.51/llvm-lld-11.0.1-rust-1.51-linux.tar.gz"]
+          - ["12", "12-0", "1.55", "v12.0.1-rust-1.55/llvm-lld-12.0.1-rust-1.55-linux.tar.gz"]
+          - ["13", "13-0", "1.59", "v13.0.0-rust-1.59/llvm-lld-13.0.0-rust-1.59-linux.tar.gz"]
+          - ["14", "14-0", "1.64", "v14.0.6-rust-1.64/llvm-lld-14.0.6-rust-1.64-linux.tar.gz"]
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Setup LLVM Installation Path
+        run: |
+          mkdir ${{ env.LLVM_INSTALL_PATH }}
+          echo "$HOME/llvm/bin" >> $GITHUB_PATH
+
+      - name: Check LLVM Artifacts In Cache
+        id: cache-llvm
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.LLVM_INSTALL_PATH }}/bin/llvm-config
+            ${{ env.LLVM_INSTALL_PATH }}/bin/lld
+            ${{ env.LLVM_INSTALL_PATH }}/bin/ld.lld
+            ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM-${{ matrix.llvm-version[0] }}.so
+            ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM.so
+            ${{ env.LLVM_INSTALL_PATH }}/include
+          key: ${{ runner.os }}-llvm-${{ matrix.llvm-version[0] }}-lld
+
+      - name: Download LLVM Binaries
+        if: steps.cache-llvm.outputs.cache-hit != 'true'
+        run: |
+          wget --user-agent='GithubCI' -O llvm.tar.gz https://github.com/jamesmth/llvm-project/releases/download/${{ matrix.llvm-version[3] }}
+          tar -C ~ -xf llvm.tar.gz
+
+      - name: Build Tests
+        run: |
+          cargo b \
+            --manifest-path tests/plugins/Cargo.toml \
+            -p plugin*-lld \
+            --no-default-features \
+            --features target-x86,llvm${{ matrix.llvm-version[1] }}
+
+      - name: Run Tests
+        run: |
+          rustup install ${{ matrix.llvm-version[2] }}
+          rustup default ${{ matrix.llvm-version[2] }}
+          RUSTFLAGS=" \
+            -Clinker-plugin-lto \
+            -Clink-arg=-B${{ env.LLVM_INSTALL_PATH }}/bin \
+            -Clink-arg=-fuse-ld=lld \
+            -Clink-arg=-Xlinker \
+            -Clink-arg=--load-pass-plugin="$GITHUB_WORKSPACE/${{ env.PLUGINS_PATH }}/libplugin1_lld.so" \
+            -Clink-arg=-Xlinker \
+            -Clink-arg=--lto-newpm-passes=mpass \
+          " \
+          cargo b --manifest-path tests/test-rust/Cargo.toml --release
+          [ $(cat ~/rust.ll) == "1" ]

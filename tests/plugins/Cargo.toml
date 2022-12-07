@@ -2,6 +2,7 @@
 
 members = [
     "plugin1",
+    "plugin1-lld",
     "plugin2",
     "plugin3",
     "plugin4",
