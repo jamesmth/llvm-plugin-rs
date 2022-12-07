@@ -15,10 +15,10 @@ jobs:
     strategy:
       matrix:
         llvm-version:
-          - ["11", "11.0.0", "11-0"]
-          - ["12", "12.0.0", "12-0"]
-          - ["13", "13.0.0", "13-0"]
-          - ["14", "14.0.0", "14-0"]
+          - ["11", "11-0", "v11.0.1-rust-1.51/llvm-lld-11.0.1-rust-1.51-windows.7z"]
+          - ["12", "12-0", "v12.0.1-rust-1.55/llvm-lld-12.0.1-rust-1.55-windows.7z"]
+          - ["13", "13-0", "v13.0.0-rust-1.59/llvm-lld-13.0.0-rust-1.59-windows.7z"]
+          - ["14", "14-0", "v14.0.6-rust-1.64/llvm-lld-14.0.6-rust-1.64-windows.7z"]
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
@@ -44,7 +44,7 @@ jobs:
       - name: Download LLVM Binaries
         if: steps.cache-llvm.outputs.cache-hit != 'true'
         run: |
-          Invoke-WebRequest -UserAgent 'GithubCI' -outfile llvm.7z https://github.com/jamesmth/llvm-project/releases/download/v${{ matrix.llvm-version[1] }}/llvm-${{ matrix.llvm-version[1] }}-windows.7z
+          Invoke-WebRequest -UserAgent 'GithubCI' -outfile llvm.7z https://github.com/jamesmth/llvm-project/releases/download/${{ matrix.llvm-version[2] }}
           7z x -oC: llvm.7z
 
       - name: Build Tests
@@ -53,7 +53,7 @@ jobs:
             --manifest-path tests\plugins\Cargo.toml `
             -p plugin* `
             --no-default-features `
-            --features target-x86,llvm${{ matrix.llvm-version[2] }},win-link-opt
+            --features target-x86,llvm${{ matrix.llvm-version[1] }},win-link-opt
 
       - name: Run Tests
         run: |
