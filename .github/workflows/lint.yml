@@ -45,8 +45,9 @@ jobs:
             ${{ env.LLVM_INSTALL_PATH }}/bin/llvm-config
             ${{ env.LLVM_INSTALL_PATH }}/bin/opt
             ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM-${{ env.LLVM_VERSION }}.so
+            ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM.so
             ${{ env.LLVM_INSTALL_PATH }}/include
-          key: ${{ runner.os }}-llvm-${{ env.LLVM_VERSION }}
+          key: ${{ runner.os }}-llvm-${{ env.LLVM_VERSION }}-opt
 
       - name: LLVM Artifacts Missing
         if: steps.cache-llvm.outputs.cache-hit != 'true'
@@ -61,7 +62,6 @@ jobs:
 
       - name: Clippy Lint
         run: |
-          ln -s libLLVM-${{ env.LLVM_VERSION }}.so ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM.so
           cargo clippy \
             -p llvm-plugin \
             --no-default-features \
