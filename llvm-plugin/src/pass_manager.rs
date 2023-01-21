@@ -64,7 +64,12 @@ impl ModulePassManager {
     }
 
     /// Returns if the pass manager contains any passes.
-    #[cfg(any(feature = "llvm12-0", feature = "llvm13-0", feature = "llvm14-0"))]
+    #[cfg(any(
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0",
+        feature = "llvm15-0",
+    ))]
     pub fn is_empty(&self) -> bool {
         unsafe { super::modulePassManagerIsEmpty(self.inner) }
     }
@@ -127,7 +132,12 @@ impl FunctionPassManager {
     }
 
     /// Returns if the pass manager contains any passes.
-    #[cfg(any(feature = "llvm12-0", feature = "llvm13-0", feature = "llvm14-0"))]
+    #[cfg(any(
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0",
+        feature = "llvm15-0",
+    ))]
     pub fn is_empty(&self) -> bool {
         unsafe { super::functionPassManagerIsEmpty(self.inner) }
     }

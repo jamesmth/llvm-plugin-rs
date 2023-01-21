@@ -316,7 +316,12 @@ impl PassBuilder {
     /// This extension point allows adding optimization once at the start
     /// of the pipeline. This does not apply to 'backend' compiles (LTO and
     /// ThinLTO link-time pipelines).
-    #[cfg(any(feature = "llvm12-0", feature = "llvm13-0", feature = "llvm14-0"))]
+    #[cfg(any(
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0",
+        feature = "llvm15-0",
+    ))]
     pub fn add_pipeline_start_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel),
@@ -359,7 +364,12 @@ impl PassBuilder {
     ///
     /// This extension point allows adding optimization right after passes
     /// that do basic simplification of the input IR.
-    #[cfg(any(feature = "llvm12-0", feature = "llvm13-0", feature = "llvm14-0"))]
+    #[cfg(any(
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0",
+        feature = "llvm15-0",
+    ))]
     pub fn add_pipeline_early_simplification_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel),
@@ -406,7 +416,8 @@ impl PassBuilder {
         feature = "llvm11-0",
         feature = "llvm12-0",
         feature = "llvm13-0",
-        feature = "llvm14-0"
+        feature = "llvm14-0",
+        feature = "llvm15-0",
     ))]
     pub fn add_optimizer_last_ep_callback<T>(&mut self, cb: T)
     where

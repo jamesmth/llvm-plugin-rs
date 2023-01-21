@@ -22,13 +22,23 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         manager.add_pass(VectorizerStartPass);
     });
 
-    #[cfg(any(feature = "llvm12-0", feature = "llvm13-0", feature = "llvm14-0"))]
+    #[cfg(any(
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0",
+        feature = "llvm15-0",
+    ))]
     builder.add_pipeline_start_ep_callback(|manager, opt| {
         assert!(matches!(opt, OptimizationLevel::O3));
         manager.add_pass(PipelineStartPass);
     });
 
-    #[cfg(any(feature = "llvm12-0", feature = "llvm13-0", feature = "llvm14-0"))]
+    #[cfg(any(
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0",
+        feature = "llvm15-0",
+    ))]
     builder.add_pipeline_early_simplification_ep_callback(|manager, opt| {
         assert!(matches!(opt, OptimizationLevel::O3));
         manager.add_pass(PipelineEarlySimpPass);
@@ -38,7 +48,8 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         feature = "llvm11-0",
         feature = "llvm12-0",
         feature = "llvm13-0",
-        feature = "llvm14-0"
+        feature = "llvm14-0",
+        feature = "llvm15-0",
     ))]
     builder.add_optimizer_last_ep_callback(|manager, opt| {
         assert!(matches!(opt, OptimizationLevel::O3));

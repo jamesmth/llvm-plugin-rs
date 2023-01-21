@@ -23,14 +23,13 @@ fn plugin_registrar(builder: &mut PassBuilder) {
 struct InjectFuncCallPass;
 impl LlvmModulePass for InjectFuncCallPass {
     fn run_pass(&self, module: &mut Module, _manager: &ModuleAnalysisManager) -> PreservedAnalyses {
-        let cx_ref = module.get_context();
-        let cx = unsafe { cx_ref.get() };
+        let cx = module.get_context();
 
         let printf = match module.get_function("printf") {
             Some(func) => func,
             None => {
                 // create type `int32 printf(int8*, ...)`
-                let arg_ty = cx.i8_type().ptr_type(AddressSpace::Generic);
+                let arg_ty = cx.i8_type().ptr_type(AddressSpace::default());
                 let func_ty = cx.i32_type().fn_type(&[arg_ty.into()], true);
                 module.add_function("printf", func_ty, None)
             }
@@ -75,7 +74,7 @@ impl LlvmModulePass for InjectFuncCallPass {
 
             let format_str_g = builder.build_pointer_cast(
                 format_str_g.as_pointer_value(),
-                cx.i8_type().ptr_type(AddressSpace::Generic),
+                cx.i8_type().ptr_type(AddressSpace::default()),
                 "",
             );
 

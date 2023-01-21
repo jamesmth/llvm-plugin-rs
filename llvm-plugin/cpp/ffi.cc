@@ -9,7 +9,7 @@
 #include "common.hh"
 #include "pass.hh"
 
-#ifdef LLVM14_0
+#if defined(LLVM14_0) || defined(LLVM15_0)
 #include <llvm/Passes/OptimizationLevel.h>
 using LlvmOptLevel = llvm::OptimizationLevel;
 #else

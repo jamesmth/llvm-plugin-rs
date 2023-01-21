@@ -100,11 +100,10 @@ fn encode_global_strings<'a>(module: &mut Module<'a>) -> Vec<GlobalString<'a>> {
 }
 
 fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
-    let cx_ref = module.get_context();
-    let cx = unsafe { cx_ref.get() };
+    let cx = module.get_context();
 
     // create type `void decode(int8*, int32)`
-    let arg1_ty = cx.i8_type().ptr_type(AddressSpace::Generic);
+    let arg1_ty = cx.i8_type().ptr_type(AddressSpace::default());
     let arg2_ty = cx.i32_type();
     let fn_ty = cx
         .void_type()
@@ -133,13 +132,14 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
     builder.build_conditional_branch(var5, loop_body_bb, end_bb);
 
     builder.position_at_end(loop_body_bb);
-    let phi1 = builder.build_phi(cx.i8_type().ptr_type(AddressSpace::Generic), "");
+    let phi1 = builder.build_phi(cx.i8_type().ptr_type(AddressSpace::default()), "");
     let phi2 = builder.build_phi(cx.i32_type(), "");
     let var9 = builder.build_int_nsw_add(
         phi2.as_basic_value().into_int_value(),
         cx.i32_type().const_all_ones(),
         "",
     );
+    #[cfg(not(feature = "llvm15-0"))]
     let var10 = unsafe {
         builder.build_gep(
             phi1.as_basic_value().into_pointer_value(),
@@ -147,7 +147,19 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
             "",
         )
     };
+    #[cfg(feature = "llvm15-0")]
+    let var10 = unsafe {
+        builder.build_gep(
+            cx.i8_type(),
+            phi1.as_basic_value().into_pointer_value(),
+            &[cx.i64_type().const_int(1, false)],
+            "",
+        )
+    };
+    #[cfg(not(feature = "llvm15-0"))]
     let var11 = builder.build_load(phi1.as_basic_value().into_pointer_value(), "");
+    #[cfg(feature = "llvm15-0")]
+    let var11 = builder.build_load(cx.i8_type(), phi1.as_basic_value().into_pointer_value(), "");
     let var12 = builder.build_int_add(var11.into_int_value(), cx.i8_type().const_all_ones(), "");
     builder.build_store(phi1.as_basic_value().into_pointer_value(), var12);
     let var13 = builder.build_int_compare(
@@ -172,8 +184,7 @@ fn create_decode_stub<'a>(
     global_strings: Vec<GlobalString<'a>>,
     decode_fn: FunctionValue<'a>,
 ) -> FunctionValue<'a> {
-    let cx_ref = module.get_context();
-    let cx = unsafe { cx_ref.get() }; // lifetime issues
+    let cx = module.get_context();
 
     let decode_stub = module.add_function("decode_stub", cx.void_type().fn_type(&[], false), None);
 
@@ -186,17 +197,29 @@ fn create_decode_stub<'a>(
             GlobalString::Array(gs, len) => {
                 let s = builder.build_pointer_cast(
                     gs.as_pointer_value(),
-                    cx.i8_type().ptr_type(AddressSpace::Generic),
+                    cx.i8_type().ptr_type(AddressSpace::default()),
                     "",
                 );
                 (s, len)
             }
             GlobalString::Struct(gs, id, len) => {
+                #[cfg(not(feature = "llvm15-0"))]
                 let s = builder
                     .build_struct_gep(gs.as_pointer_value(), id, "")
                     .unwrap();
-                let s =
-                    builder.build_pointer_cast(s, cx.i8_type().ptr_type(AddressSpace::Generic), "");
+                #[cfg(feature = "llvm15-0")]
+                let s = {
+                    let i8_ty_ptr = cx.i8_type().ptr_type(AddressSpace::default());
+                    let struct_ty = cx.struct_type(&[i8_ty_ptr.into()], false);
+                    builder
+                        .build_struct_gep(struct_ty, gs.as_pointer_value(), id, "")
+                        .unwrap()
+                };
+                let s = builder.build_pointer_cast(
+                    s,
+                    cx.i8_type().ptr_type(AddressSpace::default()),
+                    "",
+                );
                 (s, len)
             }
         };

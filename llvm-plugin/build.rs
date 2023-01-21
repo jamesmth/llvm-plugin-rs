@@ -38,6 +38,8 @@ fn main() {
     build.define("LLVM13_0", None);
     #[cfg(feature = "llvm14-0")]
     build.define("LLVM14_0", None);
+    #[cfg(feature = "llvm15-0")]
+    build.define("LLVM15_0", None);
 
     build.warnings(false);
     build.compile("llvm-plugin-cpp");
@@ -218,6 +220,8 @@ mod llvm_sys {
             (13, 0)
         } else if cfg!(feature = "llvm14-0") {
             (14, 0)
+        } else if cfg!(feature = "llvm15-0") {
+            (15, 0)
         } else {
             panic!("Missing llvm* feature")
         }

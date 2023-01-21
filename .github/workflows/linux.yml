@@ -20,6 +20,7 @@ jobs:
           - ["12", "12-0", "v12.0.1-rust-1.55/llvm-lld-12.0.1-rust-1.55-linux.tar.gz"]
           - ["13", "13-0", "v13.0.0-rust-1.59/llvm-lld-13.0.0-rust-1.59-linux.tar.gz"]
           - ["14", "14-0", "v14.0.6-rust-1.64/llvm-lld-14.0.6-rust-1.64-linux.tar.gz"]
+          - ["15", "15-0", "v15.0.0-rust-1.65/llvm-lld-15.0.0-rust-1.65-linux.tar.gz"]
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
@@ -101,6 +102,7 @@ jobs:
           - ["12", "12-0", "1.55", "v12.0.1-rust-1.55/llvm-lld-12.0.1-rust-1.55-linux.tar.gz"]
           - ["13", "13-0", "1.59", "v13.0.0-rust-1.59/llvm-lld-13.0.0-rust-1.59-linux.tar.gz"]
           - ["14", "14-0", "1.64", "v14.0.6-rust-1.64/llvm-lld-14.0.6-rust-1.64-linux.tar.gz"]
+          - ["15", "15-0", "1.65", "v15.0.0-rust-1.65/llvm-lld-15.0.0-rust-1.65-linux.tar.gz"]
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
