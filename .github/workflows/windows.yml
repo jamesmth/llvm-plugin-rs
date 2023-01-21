@@ -88,6 +88,11 @@ jobs:
             --passes="default<O3>" `
             tests/test.ll `
             -disable-output
+          opt `
+            --load-pass-plugin="${{ env.PLUGINS_PATH }}\plugin7.dll" `
+            --passes="lto<O3>" `
+            tests/test.ll `
+            -disable-output
 
   windows-tests-lld:
     name: "LLVM/LLD ${{ matrix.llvm-version[0] }} Windows"

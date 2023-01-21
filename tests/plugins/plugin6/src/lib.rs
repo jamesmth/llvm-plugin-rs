@@ -55,6 +55,12 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         assert!(matches!(opt, OptimizationLevel::O3));
         manager.add_pass(OptimizerLastPass);
     });
+
+    #[cfg(feature = "llvm15-0")]
+    builder.add_optimizer_early_ep_callback(|manager, opt| {
+        assert!(matches!(opt, OptimizationLevel::O3));
+        manager.add_pass(OptimizerEarlyPass);
+    });
 }
 
 static mut PEEPHOLE_PASS_CALLED: u32 = 0;
@@ -174,5 +180,25 @@ impl LlvmModulePass for OptimizerLastPass {
 impl Drop for OptimizerLastPass {
     fn drop(&mut self) {
         assert!(unsafe { OPT_LAST_PASS_CALLED } > 0);
+    }
+}
+
+static mut OPT_EARLY_PASS_CALLED: u32 = 0;
+
+struct OptimizerEarlyPass;
+impl LlvmModulePass for OptimizerEarlyPass {
+    fn run_pass(
+        &self,
+        _module: &mut Module,
+        _manager: &ModuleAnalysisManager,
+    ) -> PreservedAnalyses {
+        unsafe { OPT_EARLY_PASS_CALLED += 1 };
+        PreservedAnalyses::All
+    }
+}
+
+impl Drop for OptimizerEarlyPass {
+    fn drop(&mut self) {
+        assert!(unsafe { OPT_EARLY_PASS_CALLED } > 0);
     }
 }

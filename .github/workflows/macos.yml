@@ -88,3 +88,8 @@ jobs:
             --passes="default<O3>" \
             tests/test.ll \
             -disable-output
+          opt \
+            --load-pass-plugin="${{ env.PLUGINS_PATH }}/libplugin7.dylib" \
+            --passes="lto<O3>" \
+            tests/test.ll \
+            -disable-output

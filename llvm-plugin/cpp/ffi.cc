@@ -87,6 +87,40 @@ auto functionAnalysisManagerRegisterPass(
   });
 }
 
+#ifdef LLVM15_0
+auto passBuilderAddFullLinkTimeOptimizationLastEPCallback(
+    llvm::PassBuilder &Builder, const void *DataPtr,
+    void (*Deleter)(const void *),
+    void (*Callback)(const void *, llvm::ModulePassManager &,
+                     OptimizationLevel)) -> void {
+  const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
+
+  Builder.registerFullLinkTimeOptimizationLastEPCallback(
+      [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
+                                         LlvmOptLevel Opt) {
+        const auto OptFFI = getFFIOptimizationLevel(Opt);
+        Callback(Data.get(), PassManager, OptFFI);
+      });
+}
+#endif
+
+#ifdef LLVM15_0
+auto passBuilderAddFullLinkTimeOptimizationEarlyEPCallback(
+    llvm::PassBuilder &Builder, const void *DataPtr,
+    void (*Deleter)(const void *),
+    void (*Callback)(const void *, llvm::ModulePassManager &,
+                     OptimizationLevel)) -> void {
+  const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
+
+  Builder.registerFullLinkTimeOptimizationEarlyEPCallback(
+      [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
+                                         LlvmOptLevel Opt) {
+        const auto OptFFI = getFFIOptimizationLevel(Opt);
+        Callback(Data.get(), PassManager, OptFFI);
+      });
+}
+#endif
+
 #ifdef LLVM10_0
 #else
 auto passBuilderAddOptimizerLastEPCallback(
@@ -97,6 +131,23 @@ auto passBuilderAddOptimizerLastEPCallback(
   const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
 
   Builder.registerOptimizerLastEPCallback(
+      [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
+                                         LlvmOptLevel Opt) {
+        const auto OptFFI = getFFIOptimizationLevel(Opt);
+        Callback(Data.get(), PassManager, OptFFI);
+      });
+}
+#endif
+
+#ifdef LLVM15_0
+auto passBuilderAddOptimizerEarlyEPCallback(
+    llvm::PassBuilder &Builder, const void *DataPtr,
+    void (*Deleter)(const void *),
+    void (*Callback)(const void *, llvm::ModulePassManager &,
+                     OptimizationLevel)) -> void {
+  const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
+
+  Builder.registerOptimizerEarlyEPCallback(
       [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
                                          LlvmOptLevel Opt) {
         const auto OptFFI = getFFIOptimizationLevel(Opt);

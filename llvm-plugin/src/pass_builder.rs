@@ -453,6 +453,135 @@ impl PassBuilder {
             )
         }
     }
+
+    /// Register a new callback to be triggered at the full LTO
+    /// early extension point.
+    ///
+    /// # From the LLVM documentation
+    ///
+    /// This extension point allow adding passes that run at Link Time,
+    /// before Full Link Time Optimization.
+    #[cfg(feature = "llvm15-0")]
+    pub fn add_full_lto_early_ep_callback<T>(&mut self, cb: T)
+    where
+        T: Fn(&mut ModulePassManager, OptimizationLevel),
+    {
+        let cb = Box::new(cb);
+
+        extern "C" fn callback_deleter<T>(cb: *const c_void) {
+            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
+        }
+
+        extern "C" fn callback_entrypoint<T>(
+            cb: *const c_void,
+            manager: *mut c_void,
+            opt: OptimizationLevel,
+        ) where
+            T: Fn(&mut ModulePassManager, OptimizationLevel),
+        {
+            let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
+            let mut manager = unsafe { ModulePassManager::from_raw(manager) };
+
+            cb(&mut manager, opt);
+
+            Box::into_raw(cb);
+        }
+
+        unsafe {
+            super::passBuilderAddFullLinkTimeOptimizationEarlyEPCallback(
+                self.inner,
+                Box::into_raw(cb).cast(),
+                callback_deleter::<T>,
+                callback_entrypoint::<T>,
+            )
+        }
+    }
+
+    /// Register a new callback to be triggered at the full LTO
+    /// last extension point.
+    ///
+    /// # From the LLVM documentation
+    ///
+    /// This extensions point allow adding passes that run at Link Time,
+    /// after Full Link Time Optimization.
+    #[cfg(feature = "llvm15-0")]
+    pub fn add_full_lto_last_ep_callback<T>(&mut self, cb: T)
+    where
+        T: Fn(&mut ModulePassManager, OptimizationLevel),
+    {
+        let cb = Box::new(cb);
+
+        extern "C" fn callback_deleter<T>(cb: *const c_void) {
+            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
+        }
+
+        extern "C" fn callback_entrypoint<T>(
+            cb: *const c_void,
+            manager: *mut c_void,
+            opt: OptimizationLevel,
+        ) where
+            T: Fn(&mut ModulePassManager, OptimizationLevel),
+        {
+            let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
+            let mut manager = unsafe { ModulePassManager::from_raw(manager) };
+
+            cb(&mut manager, opt);
+
+            Box::into_raw(cb);
+        }
+
+        unsafe {
+            super::passBuilderAddFullLinkTimeOptimizationLastEPCallback(
+                self.inner,
+                Box::into_raw(cb).cast(),
+                callback_deleter::<T>,
+                callback_entrypoint::<T>,
+            )
+        }
+    }
+
+    /// Register a new callback to be triggered at the optimizer
+    /// early extension point.
+    ///
+    /// # From the LLVM documentation
+    ///
+    /// This extension point allows adding passes just before the main
+    /// module-level optimization passes.
+    #[cfg(feature = "llvm15-0")]
+    pub fn add_optimizer_early_ep_callback<T>(&mut self, cb: T)
+    where
+        T: Fn(&mut ModulePassManager, OptimizationLevel),
+    {
+        let cb = Box::new(cb);
+
+        extern "C" fn callback_deleter<T>(cb: *const c_void) {
+            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
+        }
+
+        extern "C" fn callback_entrypoint<T>(
+            cb: *const c_void,
+            manager: *mut c_void,
+            opt: OptimizationLevel,
+        ) where
+            T: Fn(&mut ModulePassManager, OptimizationLevel),
+        {
+            let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
+            let mut manager = unsafe { ModulePassManager::from_raw(manager) };
+
+            cb(&mut manager, opt);
+
+            Box::into_raw(cb);
+        }
+
+        unsafe {
+            super::passBuilderAddOptimizerEarlyEPCallback(
+                self.inner,
+                Box::into_raw(cb).cast(),
+                callback_deleter::<T>,
+                callback_entrypoint::<T>,
+            )
+        }
+    }
 }
 
 /// Enum describing whether a pipeline parsing callback

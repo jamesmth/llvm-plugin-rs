@@ -4,6 +4,30 @@ pub type AnalysisKey = *const u8;
 
 #[link(name = "llvm-plugin-cpp")]
 extern "C" {
+    #[cfg(feature = "llvm15-0")]
+    pub(crate) fn passBuilderAddFullLinkTimeOptimizationLastEPCallback(
+        builder: *mut c_void,
+        cb: *const c_void,
+        cb_deleter: extern "C" fn(*const c_void),
+        cb_sys: extern "C" fn(*const c_void, *mut c_void, crate::OptimizationLevel),
+    );
+
+    #[cfg(feature = "llvm15-0")]
+    pub(crate) fn passBuilderAddFullLinkTimeOptimizationEarlyEPCallback(
+        builder: *mut c_void,
+        cb: *const c_void,
+        cb_deleter: extern "C" fn(*const c_void),
+        cb_sys: extern "C" fn(*const c_void, *mut c_void, crate::OptimizationLevel),
+    );
+
+    #[cfg(feature = "llvm15-0")]
+    pub(crate) fn passBuilderAddOptimizerEarlyEPCallback(
+        builder: *mut c_void,
+        cb: *const c_void,
+        cb_deleter: extern "C" fn(*const c_void),
+        cb_sys: extern "C" fn(*const c_void, *mut c_void, crate::OptimizationLevel),
+    );
+
     #[cfg(any(
         feature = "llvm11-0",
         feature = "llvm12-0",
