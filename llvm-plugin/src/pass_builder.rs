@@ -321,6 +321,7 @@ impl PassBuilder {
         feature = "llvm13-0",
         feature = "llvm14-0",
         feature = "llvm15-0",
+        feature = "llvm16-0",
     ))]
     pub fn add_pipeline_start_ep_callback<T>(&mut self, cb: T)
     where
@@ -369,6 +370,7 @@ impl PassBuilder {
         feature = "llvm13-0",
         feature = "llvm14-0",
         feature = "llvm15-0",
+        feature = "llvm16-0",
     ))]
     pub fn add_pipeline_early_simplification_ep_callback<T>(&mut self, cb: T)
     where
@@ -418,6 +420,7 @@ impl PassBuilder {
         feature = "llvm13-0",
         feature = "llvm14-0",
         feature = "llvm15-0",
+        feature = "llvm16-0",
     ))]
     pub fn add_optimizer_last_ep_callback<T>(&mut self, cb: T)
     where
@@ -461,7 +464,7 @@ impl PassBuilder {
     ///
     /// This extension point allow adding passes that run at Link Time,
     /// before Full Link Time Optimization.
-    #[cfg(feature = "llvm15-0")]
+    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
     pub fn add_full_lto_early_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel),
@@ -504,7 +507,7 @@ impl PassBuilder {
     ///
     /// This extensions point allow adding passes that run at Link Time,
     /// after Full Link Time Optimization.
-    #[cfg(feature = "llvm15-0")]
+    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
     pub fn add_full_lto_last_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel),
@@ -547,7 +550,7 @@ impl PassBuilder {
     ///
     /// This extension point allows adding passes just before the main
     /// module-level optimization passes.
-    #[cfg(feature = "llvm15-0")]
+    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
     pub fn add_optimizer_early_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel),

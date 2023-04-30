@@ -67,9 +67,13 @@ fn encode_global_strings<'a>(module: &mut Module<'a>) -> Vec<GlobalString<'a>> {
 
         match global.get_initializer() {
             // C-like strings
-            Some(BasicValueEnum::ArrayValue(arr)) => {
+            Some(BasicValueEnum::ArrayValue(arr)) if arr.is_const_string() => {
                 let encoded_str = match arr.get_string_constant() {
-                    Some(s) => s.iter().map(|c| *c + 1).collect::<Vec<_>>(),
+                    Some(s) => s
+                        .to_bytes_with_nul()
+                        .iter()
+                        .map(|c| *c + 1)
+                        .collect::<Vec<_>>(),
                     None => continue,
                 };
                 let new_const = cx.const_string(&encoded_str, false);
@@ -80,11 +84,19 @@ fn encode_global_strings<'a>(module: &mut Module<'a>) -> Vec<GlobalString<'a>> {
             // Rust-like strings
             Some(BasicValueEnum::StructValue(stru)) if stru.get_num_operands() <= 1 => {
                 let arr = match stru.get_operand(0) {
-                    Some(Either::Left(BasicValueEnum::ArrayValue(arr))) => arr,
+                    Some(Either::Left(BasicValueEnum::ArrayValue(arr)))
+                        if arr.is_const_string() =>
+                    {
+                        arr
+                    }
                     _ => continue,
                 };
                 let encoded_str = match arr.get_string_constant() {
-                    Some(s) => s.iter().map(|c| *c + 1).collect::<Vec<_>>(),
+                    Some(s) => s
+                        .to_bytes_with_nul()
+                        .iter()
+                        .map(|c| *c + 1)
+                        .collect::<Vec<_>>(),
                     None => continue,
                 };
                 let new_const = cx.const_string(&encoded_str, false);
@@ -139,7 +151,7 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
         cx.i32_type().const_all_ones(),
         "",
     );
-    #[cfg(not(feature = "llvm15-0"))]
+    #[cfg(not(any(feature = "llvm15-0", feature = "llvm16-0")))]
     let var10 = unsafe {
         builder.build_gep(
             phi1.as_basic_value().into_pointer_value(),
@@ -147,7 +159,7 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
             "",
         )
     };
-    #[cfg(feature = "llvm15-0")]
+    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
     let var10 = unsafe {
         builder.build_gep(
             cx.i8_type(),
@@ -156,9 +168,9 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
             "",
         )
     };
-    #[cfg(not(feature = "llvm15-0"))]
+    #[cfg(not(any(feature = "llvm15-0", feature = "llvm16-0")))]
     let var11 = builder.build_load(phi1.as_basic_value().into_pointer_value(), "");
-    #[cfg(feature = "llvm15-0")]
+    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
     let var11 = builder.build_load(cx.i8_type(), phi1.as_basic_value().into_pointer_value(), "");
     let var12 = builder.build_int_add(var11.into_int_value(), cx.i8_type().const_all_ones(), "");
     builder.build_store(phi1.as_basic_value().into_pointer_value(), var12);
@@ -203,11 +215,11 @@ fn create_decode_stub<'a>(
                 (s, len)
             }
             GlobalString::Struct(gs, id, len) => {
-                #[cfg(not(feature = "llvm15-0"))]
+                #[cfg(not(any(feature = "llvm15-0", feature = "llvm16-0")))]
                 let s = builder
                     .build_struct_gep(gs.as_pointer_value(), id, "")
                     .unwrap();
-                #[cfg(feature = "llvm15-0")]
+                #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
                 let s = {
                     let i8_ty_ptr = cx.i8_type().ptr_type(AddressSpace::default());
                     let struct_ty = cx.struct_type(&[i8_ty_ptr.into()], false);

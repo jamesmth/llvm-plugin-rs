@@ -9,7 +9,7 @@
 #include "common.hh"
 #include "pass.hh"
 
-#if defined(LLVM14_0) || defined(LLVM15_0)
+#if defined(LLVM14_0) || defined(LLVM15_0) || defined(LLVM16_0)
 #include <llvm/Passes/OptimizationLevel.h>
 using LlvmOptLevel = llvm::OptimizationLevel;
 #else
@@ -87,7 +87,7 @@ auto functionAnalysisManagerRegisterPass(
   });
 }
 
-#ifdef LLVM15_0
+#if defined(LLVM15_0) || defined(LLVM16_0)
 auto passBuilderAddFullLinkTimeOptimizationLastEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
@@ -104,7 +104,7 @@ auto passBuilderAddFullLinkTimeOptimizationLastEPCallback(
 }
 #endif
 
-#ifdef LLVM15_0
+#if defined(LLVM15_0) || defined(LLVM16_0)
 auto passBuilderAddFullLinkTimeOptimizationEarlyEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
@@ -139,7 +139,7 @@ auto passBuilderAddOptimizerLastEPCallback(
 }
 #endif
 
-#ifdef LLVM15_0
+#if defined(LLVM15_0) || defined(LLVM16_0)
 auto passBuilderAddOptimizerEarlyEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),

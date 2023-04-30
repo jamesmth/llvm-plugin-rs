@@ -1,17 +1,15 @@
 use llvm_plugin::inkwell::module::Module;
-use llvm_plugin::{
-    LlvmModulePass, ModuleAnalysisManager, PassBuilder, PreservedAnalyses,
-};
+use llvm_plugin::{LlvmModulePass, ModuleAnalysisManager, PassBuilder, PreservedAnalyses};
 
 #[llvm_plugin::plugin(name = "llvm_plugin", version = "0.1")]
 fn plugin_registrar(builder: &mut PassBuilder) {
-    #[cfg(feature = "llvm15-0")]
+    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
     builder.add_full_lto_early_ep_callback(|manager, opt| {
         assert!(matches!(opt, llvm_plugin::OptimizationLevel::O3));
         manager.add_pass(FullLtoEarlyPass);
     });
 
-    #[cfg(feature = "llvm15-0")]
+    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
     builder.add_full_lto_last_ep_callback(|manager, opt| {
         assert!(matches!(opt, llvm_plugin::OptimizationLevel::O3));
         manager.add_pass(FullLtoLastPass);

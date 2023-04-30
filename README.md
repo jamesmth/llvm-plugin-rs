@@ -40,6 +40,7 @@ Supported versions:
 |    13.0.x    |      llvm13-0      | **&check;** | **&check;** | **&check;** |
 |    14.0.x    |      llvm14-0      | **&check;** | **&check;** | **&check;** |
 |    15.0.x    |      llvm15-0      | **&check;** | **&check;** | **&check;** |
+|    16.0.x    |      llvm16-0      | **&check;** | **&check;** | **&check;** |
 
 ## Getting Started
 

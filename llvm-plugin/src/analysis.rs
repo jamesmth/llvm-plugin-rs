@@ -2,7 +2,6 @@ use std::ffi::c_void;
 
 use inkwell::module::Module;
 use inkwell::values::{AsValueRef, FunctionValue};
-use inkwell::LLVMReference;
 
 use crate::{LlvmFunctionAnalysis, LlvmModuleAnalysis};
 
@@ -182,11 +181,10 @@ impl ModuleAnalysisManager {
             "Analysis cannot request its own result"
         );
 
-        unsafe {
-            let res =
-                crate::get_module_analysis_result(self.inner, A::id(), module.get_ref().cast());
-            Box::leak(Box::from_raw(res.cast()))
-        }
+        let res =
+            crate::get_module_analysis_result(self.inner, A::id(), module.as_mut_ptr().cast());
+
+        unsafe { Box::leak(Box::from_raw(res.cast())) }
     }
 
     /// Returns the result of the analysis on a given module IR.
@@ -210,14 +208,13 @@ impl ModuleAnalysisManager {
             "Analysis cannot request its own result"
         );
 
-        unsafe {
-            let res = crate::get_module_analysis_cached_result(
-                self.inner,
-                A::id(),
-                module.get_ref().cast(),
-            );
-            (!res.is_null()).then_some(Box::leak(Box::from_raw(res.cast())))
-        }
+        let res = crate::get_module_analysis_cached_result(
+            self.inner,
+            A::id(),
+            module.as_mut_ptr().cast(),
+        );
+
+        unsafe { (!res.is_null()).then_some(Box::leak(Box::from_raw(res.cast()))) }
     }
 
     /// Returns a [FunctionAnalysisManagerProxy], which is essentially an interface
@@ -226,9 +223,10 @@ impl ModuleAnalysisManager {
         &self,
         module: &Module<'a>,
     ) -> FunctionAnalysisManagerProxy {
-        let proxy = crate::get_function_analysis_manager_module_proxy(self.inner, unsafe {
-            module.get_ref().cast()
-        });
+        let proxy = crate::get_function_analysis_manager_module_proxy(
+            self.inner,
+            module.as_mut_ptr().cast(),
+        );
         FunctionAnalysisManagerProxy { inner: proxy }
     }
 

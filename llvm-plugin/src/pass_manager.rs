@@ -69,6 +69,7 @@ impl ModulePassManager {
         feature = "llvm13-0",
         feature = "llvm14-0",
         feature = "llvm15-0",
+        feature = "llvm16-0",
     ))]
     pub fn is_empty(&self) -> bool {
         unsafe { super::modulePassManagerIsEmpty(self.inner) }
@@ -137,6 +138,7 @@ impl FunctionPassManager {
         feature = "llvm13-0",
         feature = "llvm14-0",
         feature = "llvm15-0",
+        feature = "llvm16-0",
     ))]
     pub fn is_empty(&self) -> bool {
         unsafe { super::functionPassManagerIsEmpty(self.inner) }

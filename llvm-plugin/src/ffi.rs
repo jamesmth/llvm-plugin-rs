@@ -4,7 +4,7 @@ pub type AnalysisKey = *const u8;
 
 #[link(name = "llvm-plugin-cpp")]
 extern "C" {
-    #[cfg(feature = "llvm15-0")]
+    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
     pub(crate) fn passBuilderAddFullLinkTimeOptimizationLastEPCallback(
         builder: *mut c_void,
         cb: *const c_void,
@@ -12,7 +12,7 @@ extern "C" {
         cb_sys: extern "C" fn(*const c_void, *mut c_void, crate::OptimizationLevel),
     );
 
-    #[cfg(feature = "llvm15-0")]
+    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
     pub(crate) fn passBuilderAddFullLinkTimeOptimizationEarlyEPCallback(
         builder: *mut c_void,
         cb: *const c_void,
@@ -20,7 +20,7 @@ extern "C" {
         cb_sys: extern "C" fn(*const c_void, *mut c_void, crate::OptimizationLevel),
     );
 
-    #[cfg(feature = "llvm15-0")]
+    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
     pub(crate) fn passBuilderAddOptimizerEarlyEPCallback(
         builder: *mut c_void,
         cb: *const c_void,
@@ -34,6 +34,7 @@ extern "C" {
         feature = "llvm13-0",
         feature = "llvm14-0",
         feature = "llvm15-0",
+        feature = "llvm16-0",
     ))]
     pub(crate) fn passBuilderAddOptimizerLastEPCallback(
         builder: *mut c_void,
@@ -47,6 +48,7 @@ extern "C" {
         feature = "llvm13-0",
         feature = "llvm14-0",
         feature = "llvm15-0",
+        feature = "llvm16-0",
     ))]
     pub(crate) fn passBuilderAddPipelineEarlySimplificationEPCallback(
         builder: *mut c_void,
@@ -60,6 +62,7 @@ extern "C" {
         feature = "llvm13-0",
         feature = "llvm14-0",
         feature = "llvm15-0",
+        feature = "llvm16-0",
     ))]
     pub(crate) fn passBuilderAddPipelineStartEPCallback(
         builder: *mut c_void,
@@ -129,6 +132,7 @@ extern "C" {
         feature = "llvm13-0",
         feature = "llvm14-0",
         feature = "llvm15-0",
+        feature = "llvm16-0",
     ))]
     pub(crate) fn modulePassManagerIsEmpty(manager: *mut c_void) -> bool;
 
@@ -144,6 +148,7 @@ extern "C" {
         feature = "llvm13-0",
         feature = "llvm14-0",
         feature = "llvm15-0",
+        feature = "llvm16-0",
     ))]
     pub(crate) fn functionPassManagerIsEmpty(manager: *mut c_void) -> bool;
 
