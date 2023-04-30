@@ -33,7 +33,7 @@ impl FunctionAnalysisManager {
     ///
     /// Panics if the given analysis wasn't registered, or if this function was
     /// called within the given analysis itself.
-    pub fn get_result<'a, A>(&self, function: &FunctionValue<'a>) -> &A::Result
+    pub fn get_result<A>(&self, function: &FunctionValue<'_>) -> &A::Result
     where
         A: crate::LlvmFunctionAnalysis,
     {
@@ -61,7 +61,7 @@ impl FunctionAnalysisManager {
     ///
     /// Panics if the given analysis wasn't registered, or if this function was
     /// called within the given analysis itself.
-    pub fn get_cached_result<'a, A>(&self, function: &FunctionValue<'a>) -> Option<&A::Result>
+    pub fn get_cached_result<A>(&self, function: &FunctionValue<'_>) -> Option<&A::Result>
     where
         A: crate::LlvmFunctionAnalysis,
     {
@@ -171,7 +171,7 @@ impl ModuleAnalysisManager {
     ///
     /// Panics if the given analysis wasn't registered, or if this function was
     /// called within the given analysis itself.
-    pub fn get_result<'a, A>(&self, module: &Module<'a>) -> &A::Result
+    pub fn get_result<A>(&self, module: &Module<'_>) -> &A::Result
     where
         A: crate::LlvmModuleAnalysis,
     {
@@ -198,7 +198,7 @@ impl ModuleAnalysisManager {
     ///
     /// Panics if the given analysis wasn't registered, or if this function was
     /// called within the given analysis itself.
-    pub fn get_cached_result<'a, A>(&self, module: &Module<'a>) -> Option<&A::Result>
+    pub fn get_cached_result<A>(&self, module: &Module<'_>) -> Option<&A::Result>
     where
         A: crate::LlvmModuleAnalysis,
     {
@@ -219,9 +219,9 @@ impl ModuleAnalysisManager {
 
     /// Returns a [FunctionAnalysisManagerProxy], which is essentially an interface
     /// allowing management of analyses at the function level.
-    pub fn get_function_analysis_manager_proxy<'a>(
+    pub fn get_function_analysis_manager_proxy(
         &self,
-        module: &Module<'a>,
+        module: &Module<'_>,
     ) -> FunctionAnalysisManagerProxy {
         let proxy = crate::get_function_analysis_manager_module_proxy(
             self.inner,
