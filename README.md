@@ -27,7 +27,7 @@ When importing this crate in your `Cargo.toml`, you will need to specify the LLV
 
 ```toml
 [dependencies]
-llvm-plugin = { version = "0.3", features = ["llvm10-0"] }
+llvm-plugin = { version = "0.4", features = ["llvm10-0"] }
 ```
 
 Supported versions:
