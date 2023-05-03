@@ -23,7 +23,7 @@ impl PassBuilder {
     /// the given [ModulePassManager] accordingly.
     pub fn add_module_pipeline_parsing_callback<T>(&mut self, cb: T)
     where
-        T: Fn(&str, &mut ModulePassManager) -> PipelineParsing,
+        T: Fn(&str, &mut ModulePassManager) -> PipelineParsing + 'static,
     {
         let cb = Box::new(cb);
 
@@ -38,7 +38,7 @@ impl PassBuilder {
             manager: *mut c_void,
         ) -> bool
         where
-            T: Fn(&str, &mut ModulePassManager) -> PipelineParsing,
+            T: Fn(&str, &mut ModulePassManager) -> PipelineParsing + 'static,
         {
             let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
             let name = unsafe { std::slice::from_raw_parts(name_ptr, name_len) };
@@ -67,7 +67,7 @@ impl PassBuilder {
     /// the given [FunctionPassManager] accordingly.
     pub fn add_function_pipeline_parsing_callback<T>(&mut self, cb: T)
     where
-        T: Fn(&str, &mut FunctionPassManager) -> PipelineParsing,
+        T: Fn(&str, &mut FunctionPassManager) -> PipelineParsing + 'static,
     {
         let cb = Box::new(cb);
 
@@ -82,7 +82,7 @@ impl PassBuilder {
             manager: *mut c_void,
         ) -> bool
         where
-            T: Fn(&str, &mut FunctionPassManager) -> PipelineParsing,
+            T: Fn(&str, &mut FunctionPassManager) -> PipelineParsing + 'static,
         {
             let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
             let name = unsafe { std::slice::from_raw_parts(name_ptr, name_len) };
@@ -111,7 +111,7 @@ impl PassBuilder {
     /// [ModuleAnalysisManager].
     pub fn add_module_analysis_registration_callback<T>(&mut self, cb: T)
     where
-        T: Fn(&mut ModuleAnalysisManager),
+        T: Fn(&mut ModuleAnalysisManager) + 'static,
     {
         let cb = Box::new(cb);
 
@@ -121,7 +121,7 @@ impl PassBuilder {
 
         extern "C" fn callback_entrypoint<T>(cb: *const c_void, manager: *mut c_void)
         where
-            T: Fn(&mut ModuleAnalysisManager),
+            T: Fn(&mut ModuleAnalysisManager) + 'static,
         {
             let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
             let mut manager = unsafe { ModuleAnalysisManager::from_raw(manager, None) };
@@ -147,7 +147,7 @@ impl PassBuilder {
     /// [FunctionAnalysisManager].
     pub fn add_function_analysis_registration_callback<T>(&mut self, cb: T)
     where
-        T: Fn(&mut FunctionAnalysisManager),
+        T: Fn(&mut FunctionAnalysisManager) + 'static,
     {
         let cb = Box::new(cb);
 
@@ -157,7 +157,7 @@ impl PassBuilder {
 
         extern "C" fn callback_entrypoint<T>(cb: *const c_void, manager: *mut c_void)
         where
-            T: Fn(&mut FunctionAnalysisManager),
+            T: Fn(&mut FunctionAnalysisManager) + 'static,
         {
             let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
             let mut manager = unsafe { FunctionAnalysisManager::from_raw(manager, None) };
@@ -189,7 +189,7 @@ impl PassBuilder {
     /// combiner pass.
     pub fn add_peephole_ep_callback<T>(&mut self, cb: T)
     where
-        T: Fn(&mut FunctionPassManager, OptimizationLevel),
+        T: Fn(&mut FunctionPassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
 
@@ -202,7 +202,7 @@ impl PassBuilder {
             manager: *mut c_void,
             opt: OptimizationLevel,
         ) where
-            T: Fn(&mut FunctionPassManager, OptimizationLevel),
+            T: Fn(&mut FunctionPassManager, OptimizationLevel) + 'static,
         {
             let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
             let mut manager = unsafe { FunctionPassManager::from_raw(manager) };
@@ -232,7 +232,7 @@ impl PassBuilder {
     /// optimizations.
     pub fn add_scalar_optimizer_late_ep_callback<T>(&mut self, cb: T)
     where
-        T: Fn(&mut FunctionPassManager, OptimizationLevel),
+        T: Fn(&mut FunctionPassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
 
@@ -245,7 +245,7 @@ impl PassBuilder {
             manager: *mut c_void,
             opt: OptimizationLevel,
         ) where
-            T: Fn(&mut FunctionPassManager, OptimizationLevel),
+            T: Fn(&mut FunctionPassManager, OptimizationLevel) + 'static,
         {
             let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
             let mut manager = unsafe { FunctionPassManager::from_raw(manager) };
@@ -275,7 +275,7 @@ impl PassBuilder {
     /// passes are executed.
     pub fn add_vectorizer_start_ep_callback<T>(&mut self, cb: T)
     where
-        T: Fn(&mut FunctionPassManager, OptimizationLevel),
+        T: Fn(&mut FunctionPassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
 
@@ -288,7 +288,7 @@ impl PassBuilder {
             manager: *mut c_void,
             opt: OptimizationLevel,
         ) where
-            T: Fn(&mut FunctionPassManager, OptimizationLevel),
+            T: Fn(&mut FunctionPassManager, OptimizationLevel) + 'static,
         {
             let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
             let mut manager = unsafe { FunctionPassManager::from_raw(manager) };
@@ -325,7 +325,7 @@ impl PassBuilder {
     ))]
     pub fn add_pipeline_start_ep_callback<T>(&mut self, cb: T)
     where
-        T: Fn(&mut ModulePassManager, OptimizationLevel),
+        T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
 
@@ -338,7 +338,7 @@ impl PassBuilder {
             manager: *mut c_void,
             opt: OptimizationLevel,
         ) where
-            T: Fn(&mut ModulePassManager, OptimizationLevel),
+            T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
         {
             let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
             let mut manager = unsafe { ModulePassManager::from_raw(manager) };
@@ -374,7 +374,7 @@ impl PassBuilder {
     ))]
     pub fn add_pipeline_early_simplification_ep_callback<T>(&mut self, cb: T)
     where
-        T: Fn(&mut ModulePassManager, OptimizationLevel),
+        T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
 
@@ -387,7 +387,7 @@ impl PassBuilder {
             manager: *mut c_void,
             opt: OptimizationLevel,
         ) where
-            T: Fn(&mut ModulePassManager, OptimizationLevel),
+            T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
         {
             let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
             let mut manager = unsafe { ModulePassManager::from_raw(manager) };
@@ -424,7 +424,7 @@ impl PassBuilder {
     ))]
     pub fn add_optimizer_last_ep_callback<T>(&mut self, cb: T)
     where
-        T: Fn(&mut ModulePassManager, OptimizationLevel),
+        T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
 
@@ -437,7 +437,7 @@ impl PassBuilder {
             manager: *mut c_void,
             opt: OptimizationLevel,
         ) where
-            T: Fn(&mut ModulePassManager, OptimizationLevel),
+            T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
         {
             let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
             let mut manager = unsafe { ModulePassManager::from_raw(manager) };
@@ -467,7 +467,7 @@ impl PassBuilder {
     #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
     pub fn add_full_lto_early_ep_callback<T>(&mut self, cb: T)
     where
-        T: Fn(&mut ModulePassManager, OptimizationLevel),
+        T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
 
@@ -480,7 +480,7 @@ impl PassBuilder {
             manager: *mut c_void,
             opt: OptimizationLevel,
         ) where
-            T: Fn(&mut ModulePassManager, OptimizationLevel),
+            T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
         {
             let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
             let mut manager = unsafe { ModulePassManager::from_raw(manager) };
@@ -510,7 +510,7 @@ impl PassBuilder {
     #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
     pub fn add_full_lto_last_ep_callback<T>(&mut self, cb: T)
     where
-        T: Fn(&mut ModulePassManager, OptimizationLevel),
+        T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
 
@@ -523,7 +523,7 @@ impl PassBuilder {
             manager: *mut c_void,
             opt: OptimizationLevel,
         ) where
-            T: Fn(&mut ModulePassManager, OptimizationLevel),
+            T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
         {
             let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
             let mut manager = unsafe { ModulePassManager::from_raw(manager) };
@@ -553,7 +553,7 @@ impl PassBuilder {
     #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
     pub fn add_optimizer_early_ep_callback<T>(&mut self, cb: T)
     where
-        T: Fn(&mut ModulePassManager, OptimizationLevel),
+        T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
 
@@ -566,7 +566,7 @@ impl PassBuilder {
             manager: *mut c_void,
             opt: OptimizationLevel,
         ) where
-            T: Fn(&mut ModulePassManager, OptimizationLevel),
+            T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
         {
             let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
             let mut manager = unsafe { ModulePassManager::from_raw(manager) };
