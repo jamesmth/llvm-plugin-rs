@@ -1,5 +1,7 @@
 use std::ffi::c_void;
 
+use inkwell_internals::llvm_versions;
+
 use super::{
     FunctionAnalysisManager, FunctionPassManager, ModuleAnalysisManager, ModulePassManager,
 };
@@ -316,13 +318,7 @@ impl PassBuilder {
     /// This extension point allows adding optimization once at the start
     /// of the pipeline. This does not apply to 'backend' compiles (LTO and
     /// ThinLTO link-time pipelines).
-    #[cfg(any(
-        feature = "llvm12-0",
-        feature = "llvm13-0",
-        feature = "llvm14-0",
-        feature = "llvm15-0",
-        feature = "llvm16-0",
-    ))]
+    #[llvm_versions(12.0..=latest)]
     pub fn add_pipeline_start_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
@@ -365,13 +361,7 @@ impl PassBuilder {
     ///
     /// This extension point allows adding optimization right after passes
     /// that do basic simplification of the input IR.
-    #[cfg(any(
-        feature = "llvm12-0",
-        feature = "llvm13-0",
-        feature = "llvm14-0",
-        feature = "llvm15-0",
-        feature = "llvm16-0",
-    ))]
+    #[llvm_versions(12.0..=latest)]
     pub fn add_pipeline_early_simplification_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
@@ -414,14 +404,7 @@ impl PassBuilder {
     ///
     /// This extension point allows adding passes that run after everything
     /// else.
-    #[cfg(any(
-        feature = "llvm11-0",
-        feature = "llvm12-0",
-        feature = "llvm13-0",
-        feature = "llvm14-0",
-        feature = "llvm15-0",
-        feature = "llvm16-0",
-    ))]
+    #[llvm_versions(11.0..=latest)]
     pub fn add_optimizer_last_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
@@ -464,7 +447,7 @@ impl PassBuilder {
     ///
     /// This extension point allow adding passes that run at Link Time,
     /// before Full Link Time Optimization.
-    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
+    #[llvm_versions(15.0..=latest)]
     pub fn add_full_lto_early_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
@@ -507,7 +490,7 @@ impl PassBuilder {
     ///
     /// This extensions point allow adding passes that run at Link Time,
     /// after Full Link Time Optimization.
-    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
+    #[llvm_versions(15.0..=latest)]
     pub fn add_full_lto_last_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
@@ -550,7 +533,7 @@ impl PassBuilder {
     ///
     /// This extension point allows adding passes just before the main
     /// module-level optimization passes.
-    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
+    #[llvm_versions(15.0..=latest)]
     pub fn add_optimizer_early_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,

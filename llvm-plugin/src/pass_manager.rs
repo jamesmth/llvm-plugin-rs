@@ -2,6 +2,7 @@ use std::ffi::c_void;
 
 use inkwell::module::Module;
 use inkwell::values::FunctionValue;
+use inkwell_internals::llvm_versions;
 
 use super::{
     FunctionAnalysisManager, LlvmFunctionPass, LlvmModulePass, ModuleAnalysisManager,
@@ -64,13 +65,7 @@ impl ModulePassManager {
     }
 
     /// Returns if the pass manager contains any passes.
-    #[cfg(any(
-        feature = "llvm12-0",
-        feature = "llvm13-0",
-        feature = "llvm14-0",
-        feature = "llvm15-0",
-        feature = "llvm16-0",
-    ))]
+    #[llvm_versions(12.0..=latest)]
     pub fn is_empty(&self) -> bool {
         unsafe { super::modulePassManagerIsEmpty(self.inner) }
     }
@@ -133,13 +128,7 @@ impl FunctionPassManager {
     }
 
     /// Returns if the pass manager contains any passes.
-    #[cfg(any(
-        feature = "llvm12-0",
-        feature = "llvm13-0",
-        feature = "llvm14-0",
-        feature = "llvm15-0",
-        feature = "llvm16-0",
-    ))]
+    #[llvm_versions(12.0..=latest)]
     pub fn is_empty(&self) -> bool {
         unsafe { super::functionPassManagerIsEmpty(self.inner) }
     }

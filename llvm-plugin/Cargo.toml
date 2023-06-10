@@ -52,6 +52,7 @@ target-all = ["inkwell/target-all"]
 
 [dependencies]
 inkwell = { package = "llvm-plugin-inkwell", version = "0.3" }
+inkwell-internals = { package = "llvm-plugin-inkwell-internals", version = "0.7" }
 llvm-plugin-macros = { path = "../llvm-plugin-macros", version = "0.2", optional = true }
 
 [build-dependencies]
