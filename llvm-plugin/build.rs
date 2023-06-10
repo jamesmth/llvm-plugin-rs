@@ -28,20 +28,8 @@ fn main() {
         build.flag_if_supported("-fno-rtti");
     }
 
-    #[cfg(feature = "llvm10-0")]
-    build.define("LLVM10_0", None);
-    #[cfg(feature = "llvm11-0")]
-    build.define("LLVM11_0", None);
-    #[cfg(feature = "llvm12-0")]
-    build.define("LLVM12_0", None);
-    #[cfg(feature = "llvm13-0")]
-    build.define("LLVM13_0", None);
-    #[cfg(feature = "llvm14-0")]
-    build.define("LLVM14_0", None);
-    #[cfg(feature = "llvm15-0")]
-    build.define("LLVM15_0", None);
-    #[cfg(feature = "llvm16-0")]
-    build.define("LLVM16_0", None);
+    build.define("LLVM_VERSION_MAJOR", major.to_string().as_str());
+    build.define("LLVM_VERSION_MINOR", minor.to_string().as_str());
 
     build.warnings(false);
     build.compile("llvm-plugin-cpp");

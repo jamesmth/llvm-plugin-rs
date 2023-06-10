@@ -9,7 +9,7 @@
 #include "common.hh"
 #include "pass.hh"
 
-#if defined(LLVM14_0) || defined(LLVM15_0) || defined(LLVM16_0)
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 14)
 #include <llvm/Passes/OptimizationLevel.h>
 using LlvmOptLevel = llvm::OptimizationLevel;
 #else
@@ -19,7 +19,7 @@ using LlvmOptLevel = llvm::PassBuilder::OptimizationLevel;
 enum class OptimizationLevel { kO0, kO1, kO2, kO3, kOs, kOz };
 
 auto getFFIOptimizationLevel(LlvmOptLevel Opt) -> OptimizationLevel {
-#ifdef LLVM10_0
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR == 10)
   if (Opt == LlvmOptLevel::O0) {
     return OptimizationLevel::kO0;
   }
@@ -39,7 +39,7 @@ auto getFFIOptimizationLevel(LlvmOptLevel Opt) -> OptimizationLevel {
   // Starting from LLVM-11, llvm::OptimizationLevel::Ox is no longer
   // an enum but a global static. Using these global statics on Windows
   // would not compile, because an LLVM plugin links to opt.exe. The
-  // later doesn't export such symbols.
+  // latter doesn't export such symbols.
   if (Opt.getSpeedupLevel() == 0 && Opt.getSizeLevel() == 0) {
     return OptimizationLevel::kO0;
   }
@@ -87,7 +87,7 @@ auto functionAnalysisManagerRegisterPass(
   });
 }
 
-#if defined(LLVM15_0) || defined(LLVM16_0)
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 15)
 auto passBuilderAddFullLinkTimeOptimizationLastEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
@@ -104,7 +104,7 @@ auto passBuilderAddFullLinkTimeOptimizationLastEPCallback(
 }
 #endif
 
-#if defined(LLVM15_0) || defined(LLVM16_0)
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 15)
 auto passBuilderAddFullLinkTimeOptimizationEarlyEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
@@ -121,8 +121,7 @@ auto passBuilderAddFullLinkTimeOptimizationEarlyEPCallback(
 }
 #endif
 
-#ifdef LLVM10_0
-#else
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 11)
 auto passBuilderAddOptimizerLastEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
@@ -139,7 +138,7 @@ auto passBuilderAddOptimizerLastEPCallback(
 }
 #endif
 
-#if defined(LLVM15_0) || defined(LLVM16_0)
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 15)
 auto passBuilderAddOptimizerEarlyEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
@@ -156,8 +155,7 @@ auto passBuilderAddOptimizerEarlyEPCallback(
 }
 #endif
 
-#if defined(LLVM10_0) || defined(LLVM11_0)
-#else
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 12)
 auto passBuilderAddPipelineEarlySimplificationEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
@@ -174,8 +172,7 @@ auto passBuilderAddPipelineEarlySimplificationEPCallback(
 }
 #endif
 
-#if defined(LLVM10_0) || defined(LLVM11_0)
-#else
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 12)
 auto passBuilderAddPipelineStartEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
@@ -308,15 +305,13 @@ auto functionPassManagerAddPass(llvm::FunctionPassManager &PassManager,
   PassManager.addPass(Pass<FunctionIR>{Entrypoint, {PassData, Deleter}});
 }
 
-#if defined(LLVM10_0) || defined(LLVM11_0)
-#else
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 12)
 auto modulePassManagerIsEmpty(llvm::ModulePassManager &PassManager) -> bool {
   return PassManager.isEmpty();
 }
 #endif
 
-#if defined(LLVM10_0) || defined(LLVM11_0)
-#else
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 12)
 auto functionPassManagerIsEmpty(llvm::FunctionPassManager &PassManager)
     -> bool {
   return PassManager.isEmpty();
