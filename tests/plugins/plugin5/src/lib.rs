@@ -1,7 +1,6 @@
 use llvm_plugin::inkwell::basic_block::BasicBlock;
 use llvm_plugin::inkwell::module::Module;
 use llvm_plugin::inkwell::values::{FunctionValue, InstructionOpcode, InstructionValue};
-use llvm_plugin::utils::FunctionIterator;
 use llvm_plugin::{
     AnalysisKey, FunctionAnalysisManager, LlvmFunctionAnalysis, LlvmFunctionPass, LlvmModulePass,
     ModuleAnalysisManager, PassBuilder, PipelineParsing, PreservedAnalyses,
@@ -39,7 +38,7 @@ impl LlvmModulePass for Pass1 {
             .get_function_analysis_manager_proxy(&module)
             .get_manager();
 
-        for function in FunctionIterator::new(module) {
+        for function in module.get_functions() {
             let result = manager.get_cached_result::<Ana1>(&function);
             assert!(result.is_none());
 

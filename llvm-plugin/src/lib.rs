@@ -117,9 +117,6 @@ pub use pass_manager::*;
 mod pass_builder;
 pub use pass_builder::*;
 
-/// Utilities.
-pub mod utils;
-
 /// Enum specifying whether analyses on an IR unit are not preserved due
 /// to the modification of such unit by a transformation pass.
 #[repr(C)]
