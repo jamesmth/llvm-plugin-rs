@@ -7,7 +7,6 @@ use either::Either;
 
 use llvm_plugin::inkwell::module::Module;
 use llvm_plugin::inkwell::values::{BasicValueEnum, InstructionOpcode};
-use llvm_plugin::utils::InstructionIterator;
 use llvm_plugin::{
     AnalysisKey, LlvmModuleAnalysis, LlvmModulePass, ModuleAnalysisManager, PassBuilder,
     PipelineParsing, PreservedAnalyses,
@@ -47,7 +46,7 @@ impl LlvmModuleAnalysis for StaticCallCounterAnalysis {
 
         for func in module.get_functions() {
             for bb in func.get_basic_blocks() {
-                for instr in InstructionIterator::new(&bb) {
+                for instr in bb.get_instructions() {
                     if !matches!(instr.get_opcode(), InstructionOpcode::Call) {
                         continue;
                     }

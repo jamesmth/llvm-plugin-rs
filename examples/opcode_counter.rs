@@ -4,7 +4,6 @@
 use std::collections::HashMap;
 
 use llvm_plugin::inkwell::values::{FunctionValue, InstructionOpcode};
-use llvm_plugin::utils::InstructionIterator;
 use llvm_plugin::{
     AnalysisKey, FunctionAnalysisManager, LlvmFunctionAnalysis, LlvmFunctionPass, PassBuilder,
     PipelineParsing, PreservedAnalyses,
@@ -57,7 +56,7 @@ impl LlvmFunctionAnalysis for OpcodeCounterAnalysis {
         let mut opcode_map = HashMap::new();
 
         for bb in function.get_basic_blocks() {
-            for instr in InstructionIterator::new(&bb) {
+            for instr in bb.get_instructions() {
                 opcode_map
                     .entry(instr.get_opcode())
                     .and_modify(|e| *e += 1)

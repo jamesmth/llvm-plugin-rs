@@ -7,7 +7,6 @@ use llvm_plugin::inkwell::basic_block::BasicBlock;
 use llvm_plugin::inkwell::module::{Linkage, Module};
 use llvm_plugin::inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue};
 use llvm_plugin::inkwell::{AddressSpace, IntPredicate};
-use llvm_plugin::utils::GlobalIterator;
 use llvm_plugin::{
     LlvmModulePass, ModuleAnalysisManager, PassBuilder, PipelineParsing, PreservedAnalyses,
 };
@@ -59,7 +58,7 @@ fn encode_global_strings<'a>(module: &mut Module<'a>) -> Vec<GlobalString<'a>> {
     let mut global_strings = Vec::new();
     let cx = module.get_context();
 
-    for global in GlobalIterator::new(module) {
+    for global in module.get_globals() {
         // ignore external globals
         if matches!(global.get_linkage(), Linkage::External) {
             continue;
