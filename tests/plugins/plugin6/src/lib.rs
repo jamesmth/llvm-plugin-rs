@@ -28,6 +28,7 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         feature = "llvm14-0",
         feature = "llvm15-0",
         feature = "llvm16-0",
+        feature = "llvm17-0",
     ))]
     builder.add_pipeline_start_ep_callback(|manager, opt| {
         assert!(matches!(opt, OptimizationLevel::O3));
@@ -40,6 +41,7 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         feature = "llvm14-0",
         feature = "llvm15-0",
         feature = "llvm16-0",
+        feature = "llvm17-0",
     ))]
     builder.add_pipeline_early_simplification_ep_callback(|manager, opt| {
         assert!(matches!(opt, OptimizationLevel::O3));
@@ -53,13 +55,14 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         feature = "llvm14-0",
         feature = "llvm15-0",
         feature = "llvm16-0",
+        feature = "llvm17-0",
     ))]
     builder.add_optimizer_last_ep_callback(|manager, opt| {
         assert!(matches!(opt, OptimizationLevel::O3));
         manager.add_pass(OptimizerLastPass);
     });
 
-    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
+    #[cfg(any(feature = "llvm15-0", feature = "llvm16-0", feature = "llvm17-0"))]
     builder.add_optimizer_early_ep_callback(|manager, opt| {
         assert!(matches!(opt, OptimizationLevel::O3));
         manager.add_pass(OptimizerEarlyPass);

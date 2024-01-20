@@ -67,26 +67,30 @@ impl LlvmModulePass for InjectFuncCallPass {
 
             // create printf args
             let func_name = func.get_name().to_str().unwrap();
-            let func_name_g = builder.build_global_string_ptr(&func_name, "");
+            let func_name_g = builder.build_global_string_ptr(&func_name, "").unwrap();
             let func_argc = cx.i32_type().const_int(func.count_params() as u64, false);
 
             eprintln!(" Injecting call to printf inside {}", func_name);
 
-            let format_str_g = builder.build_pointer_cast(
-                format_str_g.as_pointer_value(),
-                cx.i8_type().ptr_type(AddressSpace::default()),
-                "",
-            );
+            let format_str_g = builder
+                .build_pointer_cast(
+                    format_str_g.as_pointer_value(),
+                    cx.i8_type().ptr_type(AddressSpace::default()),
+                    "",
+                )
+                .unwrap();
 
-            builder.build_call(
-                printf,
-                &[
-                    format_str_g.into(),
-                    func_name_g.as_pointer_value().into(),
-                    func_argc.into(),
-                ],
-                "",
-            );
+            builder
+                .build_call(
+                    printf,
+                    &[
+                        format_str_g.into(),
+                        func_name_g.as_pointer_value().into(),
+                        func_argc.into(),
+                    ],
+                    "",
+                )
+                .unwrap();
 
             inserted_one_printf = true;
         }
