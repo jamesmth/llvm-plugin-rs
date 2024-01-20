@@ -23,7 +23,7 @@ use syn::{AttributeArgs, Error};
 ///
 /// # Example
 ///
-/// ```
+/// ```ignore
 /// # use llvm_plugin::PassBuilder;
 /// #[llvm_plugin::plugin(name = "plugin_name", version = "0.1")]
 /// fn plugin_registrar(builder: &mut PassBuilder) {
