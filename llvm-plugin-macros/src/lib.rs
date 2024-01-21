@@ -97,7 +97,7 @@ fn parse_plugin_args(args: AttributeArgs) -> Option<syn::Result<(String, String)
             return Some(Err(Error::new_spanned(
                 arg,
                 "expected arg `name=\"value\"`",
-            )))
+            )));
         }
     };
 
@@ -112,7 +112,7 @@ fn parse_plugin_args(args: AttributeArgs) -> Option<syn::Result<(String, String)
             return Some(Err(Error::new_spanned(
                 arg,
                 "expected arg `version=\"value\"`",
-            )))
+            )));
         }
     };
 
