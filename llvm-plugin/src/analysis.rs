@@ -311,8 +311,8 @@ impl ModuleAnalysisManager {
 ///     fn run_pass(
 ///         &self,
 ///         module: &mut Module,
-///         manager: &ModuleAnalysisManager
-///      ) -> PreservedAnalyses {
+///         manager: &ModuleAnalysisManager,
+///     ) -> PreservedAnalyses {
 ///         let manager = manager
 ///             .get_function_analysis_manager_proxy(&module)
 ///             .get_manager();
