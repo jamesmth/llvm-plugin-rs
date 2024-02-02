@@ -125,7 +125,7 @@ impl FunctionAnalysisManager {
             }
 
             Box::into_raw(pass);
-            #[allow(clippy::forget_copy)]
+            #[allow(forgetting_copy_types)]
             std::mem::forget(function);
         }
 
