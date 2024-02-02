@@ -98,7 +98,7 @@ mod llvm_sys {
     fn locate_llvm_config() -> Option<PathBuf> {
         let prefix = env::var_os(&*ENV_LLVM_PREFIX)
             .map(|p| PathBuf::from(p).join("bin"))
-            .unwrap_or_else(PathBuf::new);
+            .unwrap_or_default();
         for binary_name in llvm_config_binary_names() {
             let binary_name = prefix.join(binary_name);
             match llvm_version(&binary_name) {

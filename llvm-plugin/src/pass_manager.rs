@@ -111,7 +111,7 @@ impl FunctionPassManager {
             let preserve = pass.run_pass(&mut function, &manager);
 
             Box::into_raw(pass);
-            #[allow(clippy::forget_copy)]
+            #[allow(forgetting_copy_types)]
             std::mem::forget(function);
 
             preserve
