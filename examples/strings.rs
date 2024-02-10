@@ -53,55 +53,52 @@ enum GlobalString<'a> {
 }
 
 fn encode_global_strings<'a>(module: &mut Module<'a>) -> Vec<GlobalString<'a>> {
-    let mut global_strings = Vec::new();
     let cx = module.get_context();
 
-    for global in module.get_globals() {
-        // ignore external globals
-        if matches!(global.get_linkage(), Linkage::External) {
-            continue;
-        }
-
-        match global.get_initializer() {
+    module
+        .get_globals()
+        .filter(|global| !matches!(global.get_linkage(), Linkage::External))
+        .filter_map(|global| match global.get_initializer()? {
             // C-like strings
-            Some(BasicValueEnum::ArrayValue(arr)) if arr.is_const_string() => {
-                let encoded_str = match arr.get_string_constant() {
-                    Some(s) => s
-                        .to_bytes_with_nul()
-                        .iter()
-                        .map(|c| *c + 1)
-                        .collect::<Vec<_>>(),
-                    None => continue,
-                };
+            BasicValueEnum::ArrayValue(arr) => Some((global, None, arr)),
+            // Rust-like strings
+            BasicValueEnum::StructValue(stru) if stru.count_fields() <= 1 => {
+                match stru.get_field_at_index(0)? {
+                    BasicValueEnum::ArrayValue(arr) => Some((global, Some(stru), arr)),
+                    _ => None,
+                }
+            }
+            _ => None,
+        })
+        .filter(|(_, _, arr)| {
+            // needs to be called before `get_string_constant`, otherwise it may crash
+            arr.is_const_string()
+        })
+        .filter_map(|(global, stru, arr)| {
+            // we ignore non-UTF8 strings, since they are probably not human-readable
+            let s = arr.get_string_constant().and_then(|s| s.to_str().ok())?;
+            let encoded_str = s.bytes().map(|c| c + 1).collect::<Vec<_>>();
+            Some((global, stru, encoded_str))
+        })
+        .map(|(global, stru, encoded_str)| {
+            if let Some(stru) = stru {
+                // Rust-like strings
+                let new_const = cx.const_string(&encoded_str, false);
+                stru.set_field_at_index(0, new_const);
+                global.set_initializer(&stru);
+                global.set_constant(false);
+
+                GlobalString::Struct(global, 0, encoded_str.len() as u32)
+            } else {
+                // C-like strings
                 let new_const = cx.const_string(&encoded_str, false);
                 global.set_initializer(&new_const);
                 global.set_constant(false);
-                global_strings.push(GlobalString::Array(global, encoded_str.len() as u32));
-            }
-            // Rust-like strings
-            Some(BasicValueEnum::StructValue(stru)) if stru.count_fields() <= 1 => {
-                let arr = match stru.get_field_at_index(0) {
-                    Some(BasicValueEnum::ArrayValue(arr)) if arr.is_const_string() => arr,
-                    _ => continue,
-                };
-                let encoded_str = match arr.get_string_constant() {
-                    Some(s) => s
-                        .to_bytes_with_nul()
-                        .iter()
-                        .map(|c| *c + 1)
-                        .collect::<Vec<_>>(),
-                    None => continue,
-                };
-                let new_const = cx.const_string(&encoded_str, false);
-                stru.set_field_at_index(0, new_const);
-                global.set_constant(false);
-                global_strings.push(GlobalString::Struct(global, 0, encoded_str.len() as u32));
-            }
-            _ => (),
-        }
-    }
 
-    global_strings
+                GlobalString::Array(global, encoded_str.len() as u32)
+            }
+        })
+        .collect()
 }
 
 fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
