@@ -28,6 +28,7 @@ jobs:
     env:
       LLVM_INSTALL_PATH: ~/llvm
       LLVM_VERSION: "14"
+      LLVM_LIB_NAME: "libLLVM-14.so"
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
@@ -44,7 +45,7 @@ jobs:
           path: |
             ${{ env.LLVM_INSTALL_PATH }}/bin/llvm-config
             ${{ env.LLVM_INSTALL_PATH }}/bin/opt
-            ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM-${{ env.LLVM_VERSION }}.so
+            ${{ env.LLVM_INSTALL_PATH }}/lib/${{ env.LLVM_LIB_NAME }}
             ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM.so
             ${{ env.LLVM_INSTALL_PATH }}/include
           key: ${{ runner.os }}-llvm-${{ env.LLVM_VERSION }}-opt
@@ -58,7 +59,7 @@ jobs:
           clang-tidy \
             llvm-plugin/cpp/*.{cc,hh} \
             --warnings-as-errors='*,-llvm-header-guard' \
-            -- -I"$HOME/llvm/include" -std=c++17 -DLLVM${{ env.LLVM_VERSION }}_0
+            -- -I"$HOME/llvm/include" -std=c++17 -DLLVM_VERSION_MAJOR=${{ env.LLVM_VERSION }}
 
       - name: Clippy Lint
         run: |

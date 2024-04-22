@@ -28,9 +28,6 @@ fn main() {
         build.flag_if_supported("-fno-rtti");
     }
 
-    build.define("LLVM_VERSION_MAJOR", major.to_string().as_str());
-    build.define("LLVM_VERSION_MINOR", minor.to_string().as_str());
-
     build.warnings(false);
     build.compile("llvm-plugin-cpp");
 
@@ -216,6 +213,8 @@ mod llvm_sys {
             (16, 0)
         } else if cfg!(feature = "llvm17-0") {
             (17, 0)
+        } else if cfg!(feature = "llvm18-0") {
+            (18, 0)
         } else {
             panic!("Missing llvm* feature")
         }
