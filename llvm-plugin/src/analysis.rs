@@ -71,13 +71,17 @@ impl FunctionAnalysisManager {
             "Analysis cannot request its own result"
         );
 
-        unsafe {
-            let res = crate::get_function_analysis_cached_result(
-                self.inner,
-                id,
-                function.as_value_ref().cast(),
-            );
-            (!res.is_null()).then_some(Box::leak(Box::from_raw(res.cast())))
+        let res = crate::get_function_analysis_cached_result(
+             self.inner,
+             id,
+             function.as_value_ref().cast(),
+        );
+
+        if !res.is_null() {
+            let res = unsafe { Box::leak(Box::from_raw(res.cast())) };
+            Some(res)
+        } else {
+            None
         }
     }
 
@@ -214,7 +218,12 @@ impl ModuleAnalysisManager {
             module.as_mut_ptr().cast(),
         );
 
-        unsafe { (!res.is_null()).then_some(Box::leak(Box::from_raw(res.cast()))) }
+        if !res.is_null() {
+            let res = unsafe { Box::leak(Box::from_raw(res.cast())) };
+            Some(res)
+        } else {
+            None
+        }
     }
 
     /// Returns a [FunctionAnalysisManagerProxy], which is essentially an interface
