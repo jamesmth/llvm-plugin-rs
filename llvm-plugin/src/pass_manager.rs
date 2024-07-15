@@ -65,7 +65,7 @@ impl ModulePassManager {
     }
 
     /// Returns if the pass manager contains any passes.
-    #[llvm_versions(12.0..=latest)]
+    #[llvm_versions(12..)]
     pub fn is_empty(&self) -> bool {
         unsafe { super::modulePassManagerIsEmpty(self.inner) }
     }
@@ -128,7 +128,7 @@ impl FunctionPassManager {
     }
 
     /// Returns if the pass manager contains any passes.
-    #[llvm_versions(12.0..=latest)]
+    #[llvm_versions(12..)]
     pub fn is_empty(&self) -> bool {
         unsafe { super::functionPassManagerIsEmpty(self.inner) }
     }
