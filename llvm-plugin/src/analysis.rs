@@ -72,9 +72,9 @@ impl FunctionAnalysisManager {
         );
 
         let res = crate::get_function_analysis_cached_result(
-             self.inner,
-             id,
-             function.as_value_ref().cast(),
+            self.inner,
+            id,
+            function.as_value_ref().cast(),
         );
 
         if !res.is_null() {
