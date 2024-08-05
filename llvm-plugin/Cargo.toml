@@ -1,6 +1,6 @@
 [package]
 name = "llvm-plugin"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["James Smith <jamesmth@proton.me>"]
 categories = ["development-tools::ffi"]
 description = "A wrapper for easily implementing out-of-source-tree LLVM plugins in Rust."
@@ -53,8 +53,8 @@ target-riscv = ["inkwell/target-riscv"]
 target-all = ["inkwell/target-all"]
 
 [dependencies]
-inkwell = { git = "https://github.com/TheDan64/inkwell", rev = "5c9f7fc" }
-inkwell_internals = { git = "https://github.com/TheDan64/inkwell", rev = "5c9f7fc" }
+inkwell = "0.5"
+inkwell_internals = "0.10.0"
 llvm-plugin-macros = { path = "../llvm-plugin-macros", version = "0.2", optional = true }
 
 [build-dependencies]
