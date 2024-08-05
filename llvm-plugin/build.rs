@@ -1,4 +1,6 @@
 fn main() {
+    println!("cargo::rustc-check-cfg=cfg(LLVM_NOT_FOUND)");
+
     let (major, minor) = *llvm_sys::LLVM_VERSION_FROM_FEATURES;
     println!("cargo:rustc-env=LLVM_VERSION_MAJOR={}{}", major, minor);
 
