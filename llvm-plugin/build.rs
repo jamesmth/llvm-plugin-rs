@@ -4,6 +4,7 @@ fn main() {
     let (major, minor) = *llvm_sys::LLVM_VERSION_FROM_FEATURES;
     println!("cargo:rustc-env=LLVM_VERSION_MAJOR={}{}", major, minor);
 
+    println!("cargo:rerun-if-env-changed={}", &*llvm_sys::ENV_LLVM_PREFIX);
     if llvm_sys::LLVM_CONFIG_PATH.is_none() {
         println!("cargo:rustc-cfg=LLVM_NOT_FOUND");
         return;
@@ -54,7 +55,6 @@ fn main() {
     }
 
     println!("cargo:rerun-if-changed=cpp");
-    println!("cargo:rerun-if-env-changed={}", &*llvm_sys::ENV_LLVM_PREFIX);
 }
 
 // Most code from this module was taken from the `llvm-sys` crate.
