@@ -1,12 +1,15 @@
 use std::ffi::c_void;
 
-use inkwell_internals::llvm_versions;
-
 pub type AnalysisKey = *const u8;
 
 #[link(name = "llvm-plugin-cpp")]
 extern "C" {
-    #[llvm_versions(15..)]
+    #[cfg(any(
+        feature = "llvm15-0",
+        feature = "llvm16-0",
+        feature = "llvm17-0",
+        feature = "llvm18-1",
+    ))]
     pub(crate) fn passBuilderAddFullLinkTimeOptimizationLastEPCallback(
         builder: *mut c_void,
         cb: *const c_void,
@@ -14,7 +17,12 @@ extern "C" {
         cb_sys: extern "C" fn(*const c_void, *mut c_void, crate::OptimizationLevel),
     );
 
-    #[llvm_versions(15..)]
+    #[cfg(any(
+        feature = "llvm15-0",
+        feature = "llvm16-0",
+        feature = "llvm17-0",
+        feature = "llvm18-1",
+    ))]
     pub(crate) fn passBuilderAddFullLinkTimeOptimizationEarlyEPCallback(
         builder: *mut c_void,
         cb: *const c_void,
@@ -22,7 +30,12 @@ extern "C" {
         cb_sys: extern "C" fn(*const c_void, *mut c_void, crate::OptimizationLevel),
     );
 
-    #[llvm_versions(15..)]
+    #[cfg(any(
+        feature = "llvm15-0",
+        feature = "llvm16-0",
+        feature = "llvm17-0",
+        feature = "llvm18-1",
+    ))]
     pub(crate) fn passBuilderAddOptimizerEarlyEPCallback(
         builder: *mut c_void,
         cb: *const c_void,
@@ -30,7 +43,16 @@ extern "C" {
         cb_sys: extern "C" fn(*const c_void, *mut c_void, crate::OptimizationLevel),
     );
 
-    #[llvm_versions(11..)]
+    #[cfg(any(
+        feature = "llvm11-0",
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0",
+        feature = "llvm15-0",
+        feature = "llvm16-0",
+        feature = "llvm17-0",
+        feature = "llvm18-1",
+    ))]
     pub(crate) fn passBuilderAddOptimizerLastEPCallback(
         builder: *mut c_void,
         cb: *const c_void,
@@ -38,7 +60,15 @@ extern "C" {
         cb_sys: extern "C" fn(*const c_void, *mut c_void, crate::OptimizationLevel),
     );
 
-    #[llvm_versions(12..)]
+    #[cfg(any(
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0",
+        feature = "llvm15-0",
+        feature = "llvm16-0",
+        feature = "llvm17-0",
+        feature = "llvm18-1",
+    ))]
     pub(crate) fn passBuilderAddPipelineEarlySimplificationEPCallback(
         builder: *mut c_void,
         cb: *const c_void,
@@ -46,7 +76,15 @@ extern "C" {
         cb_sys: extern "C" fn(*const c_void, *mut c_void, crate::OptimizationLevel),
     );
 
-    #[llvm_versions(12..)]
+    #[cfg(any(
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0",
+        feature = "llvm15-0",
+        feature = "llvm16-0",
+        feature = "llvm17-0",
+        feature = "llvm18-1",
+    ))]
     pub(crate) fn passBuilderAddPipelineStartEPCallback(
         builder: *mut c_void,
         cb: *const c_void,
@@ -110,7 +148,15 @@ extern "C" {
         pass_sys: extern "C" fn(*mut c_void, *mut c_void, *mut c_void) -> crate::PreservedAnalyses,
     );
 
-    #[llvm_versions(12..)]
+    #[cfg(any(
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0",
+        feature = "llvm15-0",
+        feature = "llvm16-0",
+        feature = "llvm17-0",
+        feature = "llvm18-1",
+    ))]
     pub(crate) fn modulePassManagerIsEmpty(manager: *mut c_void) -> bool;
 
     pub(crate) fn functionPassManagerAddPass(
@@ -120,7 +166,15 @@ extern "C" {
         pass_sys: extern "C" fn(*mut c_void, *mut c_void, *mut c_void) -> crate::PreservedAnalyses,
     );
 
-    #[llvm_versions(12..)]
+    #[cfg(any(
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0",
+        feature = "llvm15-0",
+        feature = "llvm16-0",
+        feature = "llvm17-0",
+        feature = "llvm18-1",
+    ))]
     pub(crate) fn functionPassManagerIsEmpty(manager: *mut c_void) -> bool;
 
     pub(crate) fn moduleAnalysisManagerRegisterPass(
