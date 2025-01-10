@@ -27,10 +27,10 @@ When importing this crate in your `Cargo.toml`, you will need to specify the LLV
 
 ```toml
 [dependencies]
-llvm-plugin = { version = "0.6", features = ["llvm18-0"] }
+llvm-plugin = { version = "0.6", features = ["llvm18-1"] }
 ```
 
-Supported versions: LLVM 10-18 mapping to a cargo feature flag `llvm*-0` where `*` corresponds to the LLVM major version.
+Supported versions: LLVM 10-18 mapping to a cargo feature flag `llvmX-Y` where `X` and `Y` are the LLVM major and minor versions.
 
 ## Getting Started
 
