@@ -48,7 +48,7 @@ impl ModulePassManager {
 
             let preserve = pass.run_pass(&mut module, &manager);
 
-            Box::into_raw(pass);
+            let _ = Box::into_raw(pass);
             std::mem::forget(module);
 
             preserve
@@ -110,7 +110,7 @@ impl FunctionPassManager {
 
             let preserve = pass.run_pass(&mut function, &manager);
 
-            Box::into_raw(pass);
+            let _ = Box::into_raw(pass);
             #[allow(forgetting_copy_types)]
             std::mem::forget(function);
 

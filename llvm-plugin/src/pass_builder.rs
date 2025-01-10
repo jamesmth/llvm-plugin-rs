@@ -49,7 +49,7 @@ impl PassBuilder {
 
             let res = cb(name, &mut manager);
 
-            Box::into_raw(cb);
+            let _ = Box::into_raw(cb);
             matches!(res, PipelineParsing::Parsed)
         }
 
@@ -93,7 +93,7 @@ impl PassBuilder {
 
             let res = cb(name, &mut manager);
 
-            Box::into_raw(cb);
+            let _ = Box::into_raw(cb);
             matches!(res, PipelineParsing::Parsed)
         }
 
@@ -130,7 +130,7 @@ impl PassBuilder {
 
             cb(&mut manager);
 
-            Box::into_raw(cb);
+            let _ = Box::into_raw(cb);
         }
 
         unsafe {
@@ -166,7 +166,7 @@ impl PassBuilder {
 
             cb(&mut manager);
 
-            Box::into_raw(cb);
+            let _ = Box::into_raw(cb);
         }
 
         unsafe {
@@ -211,7 +211,7 @@ impl PassBuilder {
 
             cb(&mut manager, opt);
 
-            Box::into_raw(cb);
+            let _ = Box::into_raw(cb);
         }
 
         unsafe {
@@ -254,7 +254,7 @@ impl PassBuilder {
 
             cb(&mut manager, opt);
 
-            Box::into_raw(cb);
+            let _ = Box::into_raw(cb);
         }
 
         unsafe {
@@ -297,7 +297,7 @@ impl PassBuilder {
 
             cb(&mut manager, opt);
 
-            Box::into_raw(cb);
+            let _ = Box::into_raw(cb);
         }
 
         unsafe {
@@ -341,7 +341,7 @@ impl PassBuilder {
 
             cb(&mut manager, opt);
 
-            Box::into_raw(cb);
+            let _ = Box::into_raw(cb);
         }
 
         unsafe {
@@ -384,7 +384,7 @@ impl PassBuilder {
 
             cb(&mut manager, opt);
 
-            Box::into_raw(cb);
+            let _ = Box::into_raw(cb);
         }
 
         unsafe {
@@ -427,7 +427,7 @@ impl PassBuilder {
 
             cb(&mut manager, opt);
 
-            Box::into_raw(cb);
+            let _ = Box::into_raw(cb);
         }
 
         unsafe {

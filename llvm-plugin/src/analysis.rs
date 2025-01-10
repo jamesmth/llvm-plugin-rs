@@ -128,7 +128,7 @@ impl FunctionAnalysisManager {
                 *res_deleter = result_deleter::<T>;
             }
 
-            Box::into_raw(pass);
+            let _ = Box::into_raw(pass);
             #[allow(forgetting_copy_types)]
             std::mem::forget(function);
         }
@@ -282,7 +282,7 @@ impl ModuleAnalysisManager {
                 *res_deleter = result_deleter::<T>;
             }
 
-            Box::into_raw(pass);
+            let _ = Box::into_raw(pass);
             std::mem::forget(module);
         }
 
