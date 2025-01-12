@@ -33,4 +33,16 @@ Please ensure your PR follows these guidelines:
 * You are basing your changes off master
 * You will keep your code reasonably up to date via rebasing over merging whenever possible
 
+### Use conventional commits
+
+We use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) and check for them as
+a lint build step. To help adhere to the format, we recommend to install
+[Commitizen](https://commitizen-tools.github.io/commitizen/). By using this tool you automatically
+follow the configuration defined in [.cz.toml](../.cz.toml). Your commit messages should have enough
+information to help someone reading the [CHANGELOG](../CHANGELOG.md) understand what is new just from
+the title. The summary helps expand on that to provide information that helps provide more context,
+describes the nature of the problem that the commit is solving and any unintuitive effects of the
+change. It's rare that code changes can easily communicate intent, so make sure this is clearly
+documented.
+
 Thanks!
