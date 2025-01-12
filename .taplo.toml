@@ -1,0 +1,5 @@
+# configuration for https://github.com/tamasfe/taplo
+
+[formatting]
+indent_string = "  "
+reorder_arrays = true
