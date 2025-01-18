@@ -498,7 +498,7 @@ impl PassBuilder {
 
             cb(&mut manager, opt);
 
-            Box::into_raw(cb);
+            let _ = Box::into_raw(cb);
         }
 
         unsafe {
@@ -546,7 +546,7 @@ impl PassBuilder {
 
             cb(&mut manager, opt);
 
-            Box::into_raw(cb);
+            let _ = Box::into_raw(cb);
         }
 
         unsafe {
@@ -594,7 +594,7 @@ impl PassBuilder {
 
             cb(&mut manager, opt);
 
-            Box::into_raw(cb);
+            let _ = Box::into_raw(cb);
         }
 
         unsafe {
