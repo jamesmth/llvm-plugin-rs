@@ -28,8 +28,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       LLVM_INSTALL_PATH: ~/llvm
-      LLVM_VERSION: "14"
-      LLVM_LIB_NAME: "libLLVM-14.so"
+      LLVM_VERSION: "18"
+      LLVM_VERSION_IN_FEATURE: "18-1"
+      LLVM_LIB_NAME: "libLLVM.so.18.1"
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
@@ -67,5 +68,5 @@ jobs:
           cargo clippy \
             -p llvm-plugin \
             --no-default-features \
-            --features target-x86,llvm${{ env.LLVM_VERSION }}-0 \
+            --features target-x86,llvm${{ env.LLVM_VERSION_IN_FEATURE }} \
             -- -D warnings
