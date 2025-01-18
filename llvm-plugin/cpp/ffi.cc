@@ -69,9 +69,8 @@ auto moduleAnalysisManagerRegisterPass(
     Analysis<ModuleIR>::Entrypoint Entrypoint, llvm::AnalysisKey *Key) -> bool {
   const auto Lock = std::lock_guard{Analysis<ModuleIR>::MutexCurrentKey};
   Analysis<ModuleIR>::CurrentKey = Key;
-  return AM.registerPass([&] {
-    return Analysis<ModuleIR>{Entrypoint, {AnalysisData, Deleter}};
-  });
+  return AM.registerPass(
+      [&] { return Analysis<ModuleIR>{Entrypoint, {AnalysisData, Deleter}}; });
 }
 
 auto functionAnalysisManagerRegisterPass(
