@@ -1,0 +1,70 @@
+name: Release stable version
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  publish-stable:
+    name: Create a stable release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate a changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+        env:
+          OUTPUT: BODY.md
+
+      - name: Publish on GitHub
+        uses: ncipollo/release-action@v1
+        with:
+          prerelease: false
+          bodyFile: BODY.md
+
+  publish-crate:
+    name: Publish crate
+    runs-on: ubuntu-latest
+    env:
+      LLVM_INSTALL_PATH: ~/llvm
+      LLVM_VERSION: "14"
+      LLVM_LIB_NAME: "libLLVM-14.so"
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Setup LLVM Installation Path
+        run: |
+          mkdir ${{ env.LLVM_INSTALL_PATH }}
+          echo "$HOME/llvm/bin" >> $GITHUB_PATH
+
+      - name: Check LLVM Artifacts In Cache
+        id: cache-llvm
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.LLVM_INSTALL_PATH }}/bin/llvm-config
+            ${{ env.LLVM_INSTALL_PATH }}/bin/opt
+            ${{ env.LLVM_INSTALL_PATH }}/lib/${{ env.LLVM_LIB_NAME }}
+            ${{ env.LLVM_INSTALL_PATH }}/lib/libLLVM.so
+            ${{ env.LLVM_INSTALL_PATH }}/include
+          key: ${{ runner.os }}-llvm-${{ env.LLVM_VERSION }}-opt
+      
+      - name: Install cargo-release
+        uses: taiki-e/install-action@v1
+        with:
+          tool: cargo-release
+
+      - name: Publish
+        run: cargo release publish -x --no-confirm --workspace --features llvm-plugin/llvm${{ env.LLVM_VERSION }}-0
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
