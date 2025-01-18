@@ -1,5 +1,7 @@
 #pragma once
 
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Module.h>
 #include <llvm/IR/PassManager.h>
 
 struct ModuleIR {

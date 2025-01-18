@@ -7,8 +7,6 @@
 
 #include <llvm/IR/PassManager.h>
 
-#include "common.hh"
-
 namespace {
 
 template <typename IR>

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <memory>
+#include <type_traits>
+#include <utility>
 
 #include <llvm/IR/PassManager.h>
-
-#include "common.hh"
 
 namespace {
 enum class PreservedAnalyses {

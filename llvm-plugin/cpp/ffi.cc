@@ -1,6 +1,11 @@
+#include <cstdint>
 #include <memory>
 #include <mutex>
+#include <utility>
 
+#include <llvm/ADT/ArrayRef.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Module.h>
 #include <llvm/IR/PassManager.h>
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
@@ -18,6 +23,7 @@ using LlvmOptLevel = llvm::PassBuilder::OptimizationLevel;
 
 enum class OptimizationLevel { kO0, kO1, kO2, kO3, kOs, kOz };
 
+namespace {
 auto getFFIOptimizationLevel(LlvmOptLevel Opt) -> OptimizationLevel {
 #if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR == 10)
   if (Opt == LlvmOptLevel::O0) {
@@ -61,6 +67,7 @@ auto getFFIOptimizationLevel(LlvmOptLevel Opt) -> OptimizationLevel {
 #endif
   return OptimizationLevel::kOz;
 }
+} // namespace
 
 extern "C" {
 auto moduleAnalysisManagerRegisterPass(
