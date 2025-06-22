@@ -216,6 +216,8 @@ mod llvm_sys {
             (17, 0)
         } else if cfg!(feature = "llvm18-1") {
             (18, 1)
+        } else if cfg!(feature = "llvm19-1") {
+            (19, 1)
         } else {
             panic!("Missing llvm* feature")
         }

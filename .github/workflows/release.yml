@@ -36,9 +36,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       LLVM_INSTALL_PATH: ~/llvm
-      LLVM_VERSION: "18"
-      LLVM_VERSION_IN_FEATURE: "18-1"
-      LLVM_LIB_NAME: "libLLVM.so.18.1"
+      LLVM_VERSION: "19"
+      LLVM_VERSION_IN_FEATURE: "19-1"
+      LLVM_LIB_NAME: "libLLVM.so.19.1"
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
