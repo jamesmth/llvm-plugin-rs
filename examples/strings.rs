@@ -71,12 +71,12 @@ fn encode_global_strings<'a>(module: &mut Module<'a>) -> Vec<GlobalString<'a>> {
             _ => None,
         })
         .filter(|(_, _, arr)| {
-            // needs to be called before `get_string_constant`, otherwise it may crash
+            // needs to be called before `as_const_string`, otherwise it may crash
             arr.is_const_string()
         })
         .filter_map(|(global, stru, arr)| {
             // we ignore non-UTF8 strings, since they are probably not human-readable
-            let s = arr.get_string_constant().and_then(|s| s.to_str().ok())?;
+            let s = arr.as_const_string().and_then(|s| str::from_utf8(s).ok())?;
             let encoded_str = s.bytes().map(|c| c + 1).collect::<Vec<_>>();
             Some((global, stru, encoded_str))
         })
@@ -156,6 +156,7 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
         feature = "llvm16-0",
         feature = "llvm17-0",
         feature = "llvm18-1",
+        feature = "llvm19-1",
     )))]
     let var10 = unsafe {
         builder.build_gep(
@@ -170,6 +171,7 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
         feature = "llvm16-0",
         feature = "llvm17-0",
         feature = "llvm18-1",
+        feature = "llvm19-1",
     ))]
     let var10 = unsafe {
         builder.build_gep(
@@ -185,6 +187,7 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
         feature = "llvm16-0",
         feature = "llvm17-0",
         feature = "llvm18-1",
+        feature = "llvm19-1",
     )))]
     let var11 = builder.build_load(phi1.as_basic_value().into_pointer_value(), "");
     #[cfg(any(
@@ -192,6 +195,7 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
         feature = "llvm16-0",
         feature = "llvm17-0",
         feature = "llvm18-1",
+        feature = "llvm19-1",
     ))]
     let var11 = builder
         .build_load(cx.i8_type(), phi1.as_basic_value().into_pointer_value(), "")
@@ -254,6 +258,7 @@ fn create_decode_stub<'a>(
                     feature = "llvm16-0",
                     feature = "llvm17-0",
                     feature = "llvm18-1",
+                    feature = "llvm19-1",
                 )))]
                 let s = builder
                     .build_struct_gep(gs.as_pointer_value(), id, "")
@@ -263,6 +268,7 @@ fn create_decode_stub<'a>(
                     feature = "llvm16-0",
                     feature = "llvm17-0",
                     feature = "llvm18-1",
+                    feature = "llvm19-1",
                 ))]
                 let s = {
                     let i8_ty_ptr = cx.i8_type().ptr_type(AddressSpace::default());

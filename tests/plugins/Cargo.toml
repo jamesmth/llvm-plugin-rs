@@ -10,3 +10,6 @@ members = [
     "plugin6",
     "plugin7",
 ]
+
+[patch.crates-io]
+inkwell = { git = "https://github.com/stevefan1999-personal/inkwell" }

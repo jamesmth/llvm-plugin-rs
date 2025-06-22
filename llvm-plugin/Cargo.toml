@@ -32,7 +32,8 @@ llvm14-0 = ["inkwell/llvm14-0-no-llvm-linking"]
 llvm15-0 = ["inkwell/llvm15-0-no-llvm-linking"]
 llvm16-0 = ["inkwell/llvm16-0-no-llvm-linking"]
 llvm17-0 = ["inkwell/llvm17-0-no-llvm-linking"]
-llvm18-1 = ["inkwell/llvm18-0-no-llvm-linking"]
+llvm18-1 = ["inkwell/llvm18-1-no-llvm-linking"]
+llvm19-1 = ["inkwell/llvm19-1-no-llvm-linking"]
 
 target-x86 = ["inkwell/target-x86"]
 target-arm = ["inkwell/target-arm"]
@@ -53,7 +54,7 @@ target-riscv = ["inkwell/target-riscv"]
 target-all = ["inkwell/target-all"]
 
 [dependencies]
-inkwell = "0.5"
+inkwell = "0.6"
 llvm-plugin-macros = { path = "../llvm-plugin-macros", version = "0.2", optional = true }
 
 [build-dependencies]
