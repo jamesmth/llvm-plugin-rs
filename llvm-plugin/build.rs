@@ -198,9 +198,7 @@ mod llvm_sys {
     }
 
     fn llvm_version_from_features() -> (u32, u32) {
-        if cfg!(feature = "llvm10-0") {
-            (10, 0)
-        } else if cfg!(feature = "llvm11-0") {
+        if cfg!(feature = "llvm11-0") {
             (11, 0)
         } else if cfg!(feature = "llvm12-0") {
             (12, 0)
