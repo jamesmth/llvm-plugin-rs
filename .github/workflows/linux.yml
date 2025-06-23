@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       LLVM_INSTALL_PATH: ~/llvm
-      PLUGINS_PATH: tests/plugins/target/debug
+      TEST_PLUGINS_PATH: tests/plugins/target/debug
+      EX_PLUGINS_PATH: target/debug/examples
     strategy:
       matrix:
         llvm-version:
@@ -62,38 +63,72 @@ jobs:
       - name: Run Tests
         run: |
           opt \
-            --load-pass-plugin="${{ env.PLUGINS_PATH }}/libplugin1.so" \
+            --load-pass-plugin="${{ env.TEST_PLUGINS_PATH }}/libplugin1.so" \
             --passes="mpass,function(fpass)" \
             tests/test.ll \
             -disable-output
           opt \
-            --load-pass-plugin="${{ env.PLUGINS_PATH }}/libplugin2.so" \
+            --load-pass-plugin="${{ env.TEST_PLUGINS_PATH }}/libplugin2.so" \
             --passes="mpass1,mpass2" \
             tests/test.ll \
             -disable-output
           opt \
-            --load-pass-plugin="${{ env.PLUGINS_PATH }}/libplugin3.so" \
+            --load-pass-plugin="${{ env.TEST_PLUGINS_PATH }}/libplugin3.so" \
             --passes="mpass1,mpass2" \
             tests/test.ll \
             -disable-output
           opt \
-            --load-pass-plugin="${{ env.PLUGINS_PATH }}/libplugin4.so" \
+            --load-pass-plugin="${{ env.TEST_PLUGINS_PATH }}/libplugin4.so" \
             --passes="mpass,function(fpass)" \
             tests/test.ll \
             -disable-output
           opt \
-            --load-pass-plugin="${{ env.PLUGINS_PATH }}/libplugin5.so" \
+            --load-pass-plugin="${{ env.TEST_PLUGINS_PATH }}/libplugin5.so" \
             --passes="mpass,function(fpass)" \
             tests/test.ll \
             -disable-output
           opt \
-            --load-pass-plugin="${{ env.PLUGINS_PATH }}/libplugin6.so" \
+            --load-pass-plugin="${{ env.TEST_PLUGINS_PATH }}/libplugin6.so" \
             --passes="default<O3>" \
             tests/test.ll \
             -disable-output
           opt \
-            --load-pass-plugin="${{ env.PLUGINS_PATH }}/libplugin7.so" \
+            --load-pass-plugin="${{ env.TEST_PLUGINS_PATH }}/libplugin7.so" \
             --passes="lto<O3>" \
+            tests/test.ll \
+            -disable-output
+
+      - name: Build Examples
+        run: |
+          cargo b \
+            --examples \
+            --features llvm${{ matrix.llvm-version[1] }}
+
+      - name: Run Examples
+        run: |
+          opt \
+            --load-pass-plugin="${{ env.EX_PLUGINS_PATH }}/libhello_world.so" \
+            --passes="hello-world" \
+            tests/test.ll \
+            -disable-output
+          opt \
+            --load-pass-plugin="${{ env.EX_PLUGINS_PATH }}/libopcode_counter.so" \
+            --passes="opcode-counter-printer" \
+            tests/test.ll \
+            -disable-output
+          opt \
+            --load-pass-plugin="${{ env.EX_PLUGINS_PATH }}/libinject_printf.so" \
+            --passes="inject-func-call" \
+            tests/test.ll \
+            -disable-output
+          opt \
+            --load-pass-plugin="${{ env.EX_PLUGINS_PATH }}/libstatic_call_counter.so" \
+            --passes="static-cc-printer" \
+            tests/test.ll \
+            -disable-output
+          opt \
+            --load-pass-plugin="${{ env.EX_PLUGINS_PATH }}/libstring_obf.so" \
+            --passes="string-obfuscator-pass" \
             tests/test.ll \
             -disable-output
 

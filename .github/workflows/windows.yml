@@ -11,7 +11,8 @@ jobs:
     runs-on: windows-latest
     env:
       LLVM_INSTALL_PATH: C:\LLVM
-      PLUGINS_PATH: tests\plugins\target\debug
+      TEST_PLUGINS_PATH: tests\plugins\target\debug
+      EX_PLUGINS_PATH: target\debug\examples
     strategy:
       matrix:
         llvm-version:
@@ -62,38 +63,72 @@ jobs:
       - name: Run Tests
         run: |
           opt `
-            --load-pass-plugin="${{ env.PLUGINS_PATH }}\plugin1.dll" `
+            --load-pass-plugin="${{ env.TEST_PLUGINS_PATH }}\plugin1.dll" `
             --passes="mpass,function(fpass)" `
             tests/test.ll `
             -disable-output
           opt `
-            --load-pass-plugin="${{ env.PLUGINS_PATH }}\plugin2.dll" `
+            --load-pass-plugin="${{ env.TEST_PLUGINS_PATH }}\plugin2.dll" `
             --passes="mpass1,mpass2" `
             tests/test.ll `
             -disable-output
           opt `
-            --load-pass-plugin="${{ env.PLUGINS_PATH }}\plugin3.dll" `
+            --load-pass-plugin="${{ env.TEST_PLUGINS_PATH }}\plugin3.dll" `
             --passes="mpass1,mpass2" `
             tests/test.ll `
             -disable-output
           opt `
-            --load-pass-plugin="${{ env.PLUGINS_PATH }}\plugin4.dll" `
+            --load-pass-plugin="${{ env.TEST_PLUGINS_PATH }}\plugin4.dll" `
             --passes="mpass,function(fpass)" `
             tests/test.ll `
             -disable-output
           opt `
-            --load-pass-plugin="${{ env.PLUGINS_PATH }}\plugin5.dll" `
+            --load-pass-plugin="${{ env.TEST_PLUGINS_PATH }}\plugin5.dll" `
             --passes="mpass,function(fpass)" `
             tests/test.ll `
             -disable-output
           opt `
-            --load-pass-plugin="${{ env.PLUGINS_PATH }}\plugin6.dll" `
+            --load-pass-plugin="${{ env.TEST_PLUGINS_PATH }}\plugin6.dll" `
             --passes="default<O3>" `
             tests/test.ll `
             -disable-output
           opt `
-            --load-pass-plugin="${{ env.PLUGINS_PATH }}\plugin7.dll" `
+            --load-pass-plugin="${{ env.TEST_PLUGINS_PATH }}\plugin7.dll" `
             --passes="lto<O3>" `
+            tests/test.ll `
+            -disable-output
+
+      - name: Build Examples
+        run: |
+          cargo b `
+            --examples `
+            --features llvm${{ matrix.llvm-version[1] }},win-link-opt
+
+      - name: Run Examples
+        run: |
+          opt `
+            --load-pass-plugin="${{ env.EX_PLUGINS_PATH }}\hello_world.dll" `
+            --passes="hello-world" `
+            tests/test.ll `
+            -disable-output
+          opt `
+            --load-pass-plugin="${{ env.EX_PLUGINS_PATH }}\opcode_counter.dll" `
+            --passes="opcode-counter-printer" `
+            tests/test.ll `
+            -disable-output
+          opt `
+            --load-pass-plugin="${{ env.EX_PLUGINS_PATH }}\inject_printf.dll" `
+            --passes="inject-func-call" `
+            tests/test.ll `
+            -disable-output
+          opt `
+            --load-pass-plugin="${{ env.EX_PLUGINS_PATH }}\static_call_counter.dll" `
+            --passes="static-cc-printer" `
+            tests/test.ll `
+            -disable-output
+          opt `
+            --load-pass-plugin="${{ env.EX_PLUGINS_PATH }}\string_obf.dll" `
+            --passes="string-obfuscator-pass" `
             tests/test.ll `
             -disable-output
 
