@@ -308,10 +308,6 @@ pub struct PassPluginLibraryInfo {
 #[cfg(feature = "macros")]
 pub use llvm_plugin_macros::*;
 
-// See https://github.com/jamesmth/llvm-plugin-rs/issues/3
-#[cfg(all(target_os = "windows", feature = "llvm10-0"))]
-compile_error!("LLVM 10 not supported on Windows");
-
 #[cfg(all(
     target_os = "windows",
     any(

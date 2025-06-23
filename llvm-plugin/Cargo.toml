@@ -12,7 +12,7 @@ readme = "README.md"
 repository = "https://github.com/jamesmth/llvm-plugin-rs"
 
 [package.metadata.docs.rs]
-features = ["llvm15-0"]            # any version >10 will do
+features = ["llvm15-0"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
@@ -24,7 +24,6 @@ macros = ["llvm-plugin-macros"]
 win-link-opt = []
 win-link-lld = []
 
-llvm10-0 = ["inkwell/llvm10-0-no-llvm-linking"]
 llvm11-0 = ["inkwell/llvm11-0-no-llvm-linking"]
 llvm12-0 = ["inkwell/llvm12-0-no-llvm-linking"]
 llvm13-0 = ["inkwell/llvm13-0-no-llvm-linking"]

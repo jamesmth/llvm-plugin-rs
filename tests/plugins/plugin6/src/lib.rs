@@ -52,17 +52,6 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         manager.add_pass(PipelineEarlySimpPass);
     });
 
-    #[cfg(any(
-        feature = "llvm11-0",
-        feature = "llvm12-0",
-        feature = "llvm13-0",
-        feature = "llvm14-0",
-        feature = "llvm15-0",
-        feature = "llvm16-0",
-        feature = "llvm17-0",
-        feature = "llvm18-1",
-        feature = "llvm19-1",
-    ))]
     builder.add_optimizer_last_ep_callback(|manager, opt| {
         assert!(matches!(opt, OptimizationLevel::O3));
         manager.add_pass(OptimizerLastPass);

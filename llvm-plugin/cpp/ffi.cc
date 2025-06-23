@@ -25,23 +25,6 @@ enum class OptimizationLevel { kO0, kO1, kO2, kO3, kOs, kOz };
 
 namespace {
 auto getFFIOptimizationLevel(LlvmOptLevel Opt) -> OptimizationLevel {
-#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR == 10)
-  if (Opt == LlvmOptLevel::O0) {
-    return OptimizationLevel::kO0;
-  }
-  if (Opt == LlvmOptLevel::O1) {
-    return OptimizationLevel::kO1;
-  }
-  if (Opt == LlvmOptLevel::O2) {
-    return OptimizationLevel::kO2;
-  }
-  if (Opt == LlvmOptLevel::O3) {
-    return OptimizationLevel::kO3;
-  }
-  if (Opt == LlvmOptLevel::Os) {
-    return OptimizationLevel::kOs;
-  }
-#else
   // Starting from LLVM-11, llvm::OptimizationLevel::Ox is no longer
   // an enum but a global static. Using these global statics on Windows
   // would not compile, because an LLVM plugin links to opt.exe. The
@@ -64,7 +47,6 @@ auto getFFIOptimizationLevel(LlvmOptLevel Opt) -> OptimizationLevel {
   if (Opt.getSpeedupLevel() == 2 && Opt.getSizeLevel() == 2) {
     return OptimizationLevel::kOz;
   }
-#endif
   return OptimizationLevel::kOz;
 }
 } // namespace
@@ -127,7 +109,6 @@ auto passBuilderAddFullLinkTimeOptimizationEarlyEPCallback(
 }
 #endif
 
-#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 11)
 auto passBuilderAddOptimizerLastEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
@@ -142,7 +123,6 @@ auto passBuilderAddOptimizerLastEPCallback(
         Callback(Data.get(), PassManager, OptFFI);
       });
 }
-#endif
 
 #if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 15)
 auto passBuilderAddOptimizerEarlyEPCallback(
