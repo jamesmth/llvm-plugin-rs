@@ -1,6 +1,7 @@
 // See https://github.com/tsarpaul/llvm-string-obfuscator
 // for a more detailed explanation.
 
+use inkwell::values::{ArrayValue, AsValueRef};
 use llvm_plugin::inkwell::basic_block::BasicBlock;
 use llvm_plugin::inkwell::module::{Linkage, Module};
 use llvm_plugin::inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue};
@@ -8,6 +9,29 @@ use llvm_plugin::inkwell::{AddressSpace, IntPredicate};
 use llvm_plugin::{
     LlvmModulePass, ModuleAnalysisManager, PassBuilder, PipelineParsing, PreservedAnalyses,
 };
+
+#[cfg(not(any(
+    feature = "llvm15-0",
+    feature = "llvm16-0",
+    feature = "llvm17-0",
+    feature = "llvm18-1",
+)))]
+macro_rules! ptr_type {
+    ($cx:ident, $ty:ident) => {
+        $cx.$ty().ptr_type(AddressSpace::default())
+    };
+}
+#[cfg(any(
+    feature = "llvm15-0",
+    feature = "llvm16-0",
+    feature = "llvm17-0",
+    feature = "llvm18-1",
+))]
+macro_rules! ptr_type {
+    ($cx:ident, $ty:ident) => {
+        $cx.ptr_type(AddressSpace::default())
+    };
+}
 
 #[llvm_plugin::plugin(name = "StringObfuscatorPass", version = "v0.1")]
 fn plugin_registrar(builder: &mut PassBuilder) {
@@ -71,12 +95,12 @@ fn encode_global_strings<'a>(module: &mut Module<'a>) -> Vec<GlobalString<'a>> {
             _ => None,
         })
         .filter(|(_, _, arr)| {
-            // needs to be called before `get_string_constant`, otherwise it may crash
+            // needs to be called before `array_as_const_string`, otherwise it may crash
             arr.is_const_string()
         })
         .filter_map(|(global, stru, arr)| {
             // we ignore non-UTF8 strings, since they are probably not human-readable
-            let s = arr.get_string_constant().and_then(|s| s.to_str().ok())?;
+            let s = array_as_const_string(&arr).and_then(|s| str::from_utf8(s).ok())?;
             let encoded_str = s.bytes().map(|c| c + 1).collect::<Vec<_>>();
             Some((global, stru, encoded_str))
         })
@@ -101,11 +125,22 @@ fn encode_global_strings<'a>(module: &mut Module<'a>) -> Vec<GlobalString<'a>> {
         .collect()
 }
 
+pub fn array_as_const_string<'a>(arr: &'a ArrayValue) -> Option<&'a [u8]> {
+    let mut len = 0;
+    let ptr = unsafe { inkwell::llvm_sys::core::LLVMGetAsString(arr.as_value_ref(), &mut len) };
+
+    if ptr.is_null() {
+        None
+    } else {
+        unsafe { Some(std::slice::from_raw_parts(ptr.cast(), len)) }
+    }
+}
+
 fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
     let cx = module.get_context();
 
     // create type `void decode(int8*, int32)`
-    let arg1_ty = cx.i8_type().ptr_type(AddressSpace::default());
+    let arg1_ty = ptr_type!(cx, i8_type);
     let arg2_ty = cx.i32_type();
     let fn_ty = cx
         .void_type()
@@ -140,9 +175,7 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
         .unwrap();
 
     builder.position_at_end(loop_body_bb);
-    let phi1 = builder
-        .build_phi(cx.i8_type().ptr_type(AddressSpace::default()), "")
-        .unwrap();
+    let phi1 = builder.build_phi(ptr_type!(cx, i8_type), "").unwrap();
     let phi2 = builder.build_phi(cx.i32_type(), "").unwrap();
     let var9 = builder
         .build_int_nsw_add(
@@ -186,7 +219,9 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
         feature = "llvm17-0",
         feature = "llvm18-1",
     )))]
-    let var11 = builder.build_load(phi1.as_basic_value().into_pointer_value(), "");
+    let var11 = builder
+        .build_load(phi1.as_basic_value().into_pointer_value(), "")
+        .unwrap();
     #[cfg(any(
         feature = "llvm15-0",
         feature = "llvm16-0",
@@ -240,11 +275,7 @@ fn create_decode_stub<'a>(
         let (s, len) = match globstr {
             GlobalString::Array(gs, len) => {
                 let s = builder
-                    .build_pointer_cast(
-                        gs.as_pointer_value(),
-                        cx.i8_type().ptr_type(AddressSpace::default()),
-                        "",
-                    )
+                    .build_pointer_cast(gs.as_pointer_value(), ptr_type!(cx, i8_type), "")
                     .unwrap();
                 (s, len)
             }
@@ -265,14 +296,14 @@ fn create_decode_stub<'a>(
                     feature = "llvm18-1",
                 ))]
                 let s = {
-                    let i8_ty_ptr = cx.i8_type().ptr_type(AddressSpace::default());
+                    let i8_ty_ptr = ptr_type!(cx, i8_type);
                     let struct_ty = cx.struct_type(&[i8_ty_ptr.into()], false);
                     builder
                         .build_struct_gep(struct_ty, gs.as_pointer_value(), id, "")
                         .unwrap()
                 };
                 let s = builder
-                    .build_pointer_cast(s, cx.i8_type().ptr_type(AddressSpace::default()), "")
+                    .build_pointer_cast(s, ptr_type!(cx, i8_type), "")
                     .unwrap();
                 (s, len)
             }

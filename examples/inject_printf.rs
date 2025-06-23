@@ -8,6 +8,29 @@ use llvm_plugin::{
     LlvmModulePass, ModuleAnalysisManager, PassBuilder, PipelineParsing, PreservedAnalyses,
 };
 
+#[cfg(not(any(
+    feature = "llvm15-0",
+    feature = "llvm16-0",
+    feature = "llvm17-0",
+    feature = "llvm18-1",
+)))]
+macro_rules! ptr_type {
+    ($cx:ident, $ty:ident) => {
+        $cx.$ty().ptr_type(AddressSpace::default())
+    };
+}
+#[cfg(any(
+    feature = "llvm15-0",
+    feature = "llvm16-0",
+    feature = "llvm17-0",
+    feature = "llvm18-1",
+))]
+macro_rules! ptr_type {
+    ($cx:ident, $ty:ident) => {
+        $cx.ptr_type(AddressSpace::default())
+    };
+}
+
 #[llvm_plugin::plugin(name = "inject-func-call", version = "0.1")]
 fn plugin_registrar(builder: &mut PassBuilder) {
     builder.add_module_pipeline_parsing_callback(|name, pass_manager| {
@@ -29,7 +52,7 @@ impl LlvmModulePass for InjectFuncCallPass {
             Some(func) => func,
             None => {
                 // create type `int32 printf(int8*, ...)`
-                let arg_ty = cx.i8_type().ptr_type(AddressSpace::default());
+                let arg_ty = ptr_type!(cx, i8_type);
                 let func_ty = cx.i32_type().fn_type(&[arg_ty.into()], true);
                 module.add_function("printf", func_ty, None)
             }
@@ -73,11 +96,7 @@ impl LlvmModulePass for InjectFuncCallPass {
             eprintln!(" Injecting call to printf inside {}", func_name);
 
             let format_str_g = builder
-                .build_pointer_cast(
-                    format_str_g.as_pointer_value(),
-                    cx.i8_type().ptr_type(AddressSpace::default()),
-                    "",
-                )
+                .build_pointer_cast(format_str_g.as_pointer_value(), ptr_type!(cx, i8_type), "")
                 .unwrap();
 
             builder
