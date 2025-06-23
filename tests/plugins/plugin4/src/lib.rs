@@ -49,12 +49,12 @@ impl LlvmModulePass for Pass1 {
             .get_result::<Ana1>(module)
             .as_ref()
             .expect("get_result");
-        assert_eq!(result.to_string(), "[13 x i8] c\"hello world\\0A\\00\"");
+        assert_eq!(result.to_string(), "[12 x i8] c\"hello world\\00\"");
 
         let result = manager.get_cached_result::<Ana1>(module);
         assert!(matches!(
             result.and_then(|res| res.as_ref()).map(|res| res.to_string()),
-            Some(res) if res == "[13 x i8] c\"hello world\\0A\\00\""
+            Some(res) if res == "[12 x i8] c\"hello world\\00\""
         ));
 
         PreservedAnalyses::All

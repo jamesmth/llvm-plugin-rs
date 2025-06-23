@@ -46,7 +46,7 @@ impl LlvmModulePass for Pass1 {
             .get_result::<Ana1>(module)
             .as_ref()
             .expect("get_result");
-        assert_eq!(result.to_string(), "[13 x i8] c\"hello world\\0A\\00\"");
+        assert_eq!(result.to_string(), "[12 x i8] c\"hello world\\00\"");
         PreservedAnalyses::All
     }
 }
