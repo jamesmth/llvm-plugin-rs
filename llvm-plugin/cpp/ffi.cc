@@ -118,7 +118,12 @@ auto passBuilderAddOptimizerLastEPCallback(
 
   Builder.registerOptimizerLastEPCallback(
       [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
+#if (LLVM_VERSION_MAJOR >= 20)
+                                         LlvmOptLevel Opt,
+                                         llvm::ThinOrFullLTOPhase) {
+#else
                                          LlvmOptLevel Opt) {
+#endif
         const auto OptFFI = getFFIOptimizationLevel(Opt);
         Callback(Data.get(), PassManager, OptFFI);
       });
@@ -134,7 +139,12 @@ auto passBuilderAddOptimizerEarlyEPCallback(
 
   Builder.registerOptimizerEarlyEPCallback(
       [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
+#if (LLVM_VERSION_MAJOR >= 20)
+                                         LlvmOptLevel Opt,
+                                         llvm::ThinOrFullLTOPhase) {
+#else
                                          LlvmOptLevel Opt) {
+#endif
         const auto OptFFI = getFFIOptimizationLevel(Opt);
         Callback(Data.get(), PassManager, OptFFI);
       });
@@ -151,7 +161,12 @@ auto passBuilderAddPipelineEarlySimplificationEPCallback(
 
   Builder.registerPipelineEarlySimplificationEPCallback(
       [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
+#if (LLVM_VERSION_MAJOR >= 20)
+                                         LlvmOptLevel Opt,
+                                         llvm::ThinOrFullLTOPhase) {
+#else
                                          LlvmOptLevel Opt) {
+#endif
         const auto OptFFI = getFFIOptimizationLevel(Opt);
         Callback(Data.get(), PassManager, OptFFI);
       });

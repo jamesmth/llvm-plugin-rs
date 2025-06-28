@@ -16,6 +16,7 @@ use llvm_plugin::{
     feature = "llvm17-0",
     feature = "llvm18-1",
     feature = "llvm19-1",
+    feature = "llvm20-1",
 )))]
 macro_rules! ptr_type {
     ($cx:ident, $ty:ident) => {
@@ -28,6 +29,7 @@ macro_rules! ptr_type {
     feature = "llvm17-0",
     feature = "llvm18-1",
     feature = "llvm19-1",
+    feature = "llvm20-1",
 ))]
 macro_rules! ptr_type {
     ($cx:ident, $ty:ident) => {
@@ -192,6 +194,7 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
         feature = "llvm17-0",
         feature = "llvm18-1",
         feature = "llvm19-1",
+        feature = "llvm20-1",
     )))]
     let var10 = unsafe {
         builder.build_gep(
@@ -207,6 +210,7 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
         feature = "llvm17-0",
         feature = "llvm18-1",
         feature = "llvm19-1",
+        feature = "llvm20-1",
     ))]
     let var10 = unsafe {
         builder.build_gep(
@@ -223,6 +227,7 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
         feature = "llvm17-0",
         feature = "llvm18-1",
         feature = "llvm19-1",
+        feature = "llvm20-1",
     )))]
     let var11 = builder
         .build_load(phi1.as_basic_value().into_pointer_value(), "")
@@ -233,6 +238,7 @@ fn create_decode_fn<'a>(module: &mut Module<'a>) -> FunctionValue<'a> {
         feature = "llvm17-0",
         feature = "llvm18-1",
         feature = "llvm19-1",
+        feature = "llvm20-1",
     ))]
     let var11 = builder
         .build_load(cx.i8_type(), phi1.as_basic_value().into_pointer_value(), "")
@@ -292,6 +298,7 @@ fn create_decode_stub<'a>(
                     feature = "llvm17-0",
                     feature = "llvm18-1",
                     feature = "llvm19-1",
+                    feature = "llvm20-1",
                 )))]
                 let s = builder
                     .build_struct_gep(gs.as_pointer_value(), id, "")
@@ -302,6 +309,7 @@ fn create_decode_stub<'a>(
                     feature = "llvm17-0",
                     feature = "llvm18-1",
                     feature = "llvm19-1",
+                    feature = "llvm20-1",
                 ))]
                 let s = {
                     let i8_ty_ptr = ptr_type!(cx, i8_type);
