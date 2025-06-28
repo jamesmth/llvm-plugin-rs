@@ -24,6 +24,7 @@ jobs:
           - ["17", "17-0", "v17.0.6-rust-1.75/llvm-lld-17.0.6-rust-1.75-macos-x86_64.tar.gz", "macos-13"]
           - ["18", "18-1", "v18.1.2-rust-1.78/llvm-lld-18.1.2-rust-1.78-macos-arm64.tar.gz", "macos-latest"]
           - ["19", "19-1", "v19.1.5-rust-1.84/llvm-lld-19.1.5-rust-1.84-macos-arm64.tar.gz", "macos-latest"]
+          - ["20", "20-1", "v20.1.1-rust-1.87/llvm-lld-20.1.1-rust-1.87-macos-arm64.tar.gz", "macos-latest"]
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2

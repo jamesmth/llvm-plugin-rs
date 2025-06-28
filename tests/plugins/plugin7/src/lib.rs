@@ -9,6 +9,7 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         feature = "llvm17-0",
         feature = "llvm18-1",
         feature = "llvm19-1",
+        feature = "llvm20-1",
     ))]
     builder.add_full_lto_early_ep_callback(|manager, opt| {
         assert!(matches!(opt, llvm_plugin::OptimizationLevel::O3));
@@ -21,6 +22,7 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         feature = "llvm17-0",
         feature = "llvm18-1",
         feature = "llvm19-1",
+        feature = "llvm20-1",
     ))]
     builder.add_full_lto_last_ep_callback(|manager, opt| {
         assert!(matches!(opt, llvm_plugin::OptimizationLevel::O3));

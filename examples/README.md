@@ -9,7 +9,7 @@ achieved with simple LLVM passes.
     <summary><em>Execute the example</em></summary>
 
     ```shell
-    $ cargo b --example hello-world --features llvm19-1
+    $ cargo b --example hello-world --features llvm20-1
     $ opt --load-pass-plugin=target/debug/examples/libhello_world.so --passes=hello-world in.ll -S -o out.ll
     ```
 
@@ -21,7 +21,7 @@ achieved with simple LLVM passes.
     <summary><em>Execute the example</em></summary>
 
     ```shell
-    $ cargo b --example opcode-counter --features llvm19-1
+    $ cargo b --example opcode-counter --features llvm20-1
     $ opt --load-pass-plugin=target/debug/examples/libopcode_counter.so --passes=opcode-counter-printer in.ll -S -o out.ll
     ```
 
@@ -33,7 +33,7 @@ achieved with simple LLVM passes.
     <summary><em>Execute the example</em></summary>
 
     ```shell
-    $ cargo b --example inject-printf --features llvm19-1
+    $ cargo b --example inject-printf --features llvm20-1
     $ opt --load-pass-plugin=target/debug/examples/libinject_printf.so --passes=inject-func-call in.ll -S -o out.ll
     ```
 
@@ -45,7 +45,7 @@ achieved with simple LLVM passes.
     <summary><em>Execute the example</em></summary>
 
     ```shell
-    $ cargo b --example static-call-counter --features llvm19-1
+    $ cargo b --example static-call-counter --features llvm20-1
     $ opt --load-pass-plugin=target/debug/examples/libstatic_call_counter.so --passes=static-cc-printer in.ll -S -o out.ll
     ```
 
@@ -57,7 +57,7 @@ achieved with simple LLVM passes.
     <summary><em>Execute the example</em></summary>
 
     ```shell
-    $ cargo b --example string-obf --features llvm19-1
+    $ cargo b --example string-obf --features llvm20-1
     $ opt --load-pass-plugin=target/debug/examples/libstring_obf.so --passes=string-obfuscator-pass in.ll -S -o out.ll
     ```
 
