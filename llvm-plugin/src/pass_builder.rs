@@ -469,7 +469,7 @@ impl PassBuilder {
         feature = "llvm17-0",
         feature = "llvm18-1",
         feature = "llvm19-1",
-     ))]
+    ))]
     pub fn add_optimizer_last_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
