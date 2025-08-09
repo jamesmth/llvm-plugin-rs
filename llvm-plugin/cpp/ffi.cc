@@ -25,9 +25,10 @@ enum class OptimizationLevel { kO0, kO1, kO2, kO3, kOs, kOz };
 
 // LLVM 20.1 introduced ThinOrFullLTOPhase in OptimizerEarly/Last and
 // PipelineEarlySimplification EP callbacks. Detect 20.1+.
-#if defined(LLVM_VERSION_MAJOR) && \
-    (LLVM_VERSION_MAJOR > 20 || \
-     (LLVM_VERSION_MAJOR == 20 && defined(LLVM_VERSION_MINOR) && LLVM_VERSION_MINOR >= 1))
+#if defined(LLVM_VERSION_MAJOR) &&                                             \
+    (LLVM_VERSION_MAJOR > 20 ||                                                \
+     (LLVM_VERSION_MAJOR == 20 && defined(LLVM_VERSION_MINOR) &&               \
+      LLVM_VERSION_MINOR >= 1))
 #define LLVM_HAS_THIN_OR_FULL_LTO_PHASE 1
 #else
 #define LLVM_HAS_THIN_OR_FULL_LTO_PHASE 0
@@ -166,8 +167,8 @@ auto passBuilderAddOptimizerLastEPCallback(
 auto passBuilderAddOptimizerLastEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
-    void (*Callback)(const void *, llvm::ModulePassManager &,
-                     OptimizationLevel, ThinOrFullLTOPhaseFFI)) -> void {
+    void (*Callback)(const void *, llvm::ModulePassManager &, OptimizationLevel,
+                     ThinOrFullLTOPhaseFFI)) -> void {
   const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
 
   Builder.registerOptimizerLastEPCallback(
@@ -201,8 +202,8 @@ auto passBuilderAddOptimizerEarlyEPCallback(
 auto passBuilderAddOptimizerEarlyEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
-    void (*Callback)(const void *, llvm::ModulePassManager &,
-                     OptimizationLevel, ThinOrFullLTOPhaseFFI)) -> void {
+    void (*Callback)(const void *, llvm::ModulePassManager &, OptimizationLevel,
+                     ThinOrFullLTOPhaseFFI)) -> void {
   const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
 
   Builder.registerOptimizerEarlyEPCallback(
@@ -237,8 +238,8 @@ auto passBuilderAddPipelineEarlySimplificationEPCallback(
 auto passBuilderAddPipelineEarlySimplificationEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
-    void (*Callback)(const void *, llvm::ModulePassManager &,
-                     OptimizationLevel, ThinOrFullLTOPhaseFFI)) -> void {
+    void (*Callback)(const void *, llvm::ModulePassManager &, OptimizationLevel,
+                     ThinOrFullLTOPhaseFFI)) -> void {
   const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
 
   Builder.registerPipelineEarlySimplificationEPCallback(
