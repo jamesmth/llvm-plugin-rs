@@ -415,6 +415,13 @@ impl PassBuilder {
         }
     }
 
+    /// Register a new callback to be triggered at the pipeline
+    /// early simplification extension point.
+    ///
+    /// # From the LLVM documentation
+    ///
+    /// This extension point allows adding optimization right after passes
+    /// that do basic simplification of the input IR.
     #[cfg(feature = "llvm20-1")]
     pub fn add_pipeline_early_simplification_ep_callback<T>(&mut self, cb: T)
     where
@@ -505,6 +512,13 @@ impl PassBuilder {
         }
     }
 
+    /// Register a new callback to be triggered at the optimizer
+    /// last extension point.
+    ///
+    /// # From the LLVM documentation
+    ///
+    /// This extension point allows adding passes that run after everything
+    /// else.
     #[cfg(feature = "llvm20-1")]
     pub fn add_optimizer_last_ep_callback<T>(&mut self, cb: T)
     where
@@ -691,6 +705,13 @@ impl PassBuilder {
         }
     }
 
+    /// Register a new callback to be triggered at the optimizer
+    /// early extension point.
+    ///
+    /// # From the LLVM documentation
+    ///
+    /// This extension point allows adding passes just before the main
+    /// module-level optimization passes.
     #[cfg(feature = "llvm20-1")]
     pub fn add_optimizer_early_ep_callback<T>(&mut self, cb: T)
     where
