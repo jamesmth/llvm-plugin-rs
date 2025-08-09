@@ -46,14 +46,46 @@ extern "C" {
         builder: *mut c_void,
         cb: *const c_void,
         cb_deleter: extern "C" fn(*const c_void),
-        cb_sys: extern "C" fn(*const c_void, *mut c_void, crate::OptimizationLevel),
+        #[cfg(not(feature = "llvm20-1"))] cb_sys: extern "C" fn(
+            *const c_void,
+            *mut c_void,
+            crate::OptimizationLevel,
+        ),
+        #[cfg(feature = "llvm20-1")] cb_sys: extern "C" fn(
+            *const c_void,
+            *mut c_void,
+            crate::OptimizationLevel,
+            crate::ThinOrFullLTOPhase,
+        ),
     );
 
+    #[cfg(any(
+        feature = "llvm11-0",
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0",
+        feature = "llvm15-0",
+        feature = "llvm16-0",
+        feature = "llvm17-0",
+        feature = "llvm18-1",
+        feature = "llvm19-1",
+        feature = "llvm20-1",
+    ))]
     pub(crate) fn passBuilderAddOptimizerLastEPCallback(
         builder: *mut c_void,
         cb: *const c_void,
         cb_deleter: extern "C" fn(*const c_void),
-        cb_sys: extern "C" fn(*const c_void, *mut c_void, crate::OptimizationLevel),
+        #[cfg(not(feature = "llvm20-1"))] cb_sys: extern "C" fn(
+            *const c_void,
+            *mut c_void,
+            crate::OptimizationLevel,
+        ),
+        #[cfg(feature = "llvm20-1")] cb_sys: extern "C" fn(
+            *const c_void,
+            *mut c_void,
+            crate::OptimizationLevel,
+            crate::ThinOrFullLTOPhase,
+        ),
     );
 
     #[cfg(any(
@@ -71,7 +103,17 @@ extern "C" {
         builder: *mut c_void,
         cb: *const c_void,
         cb_deleter: extern "C" fn(*const c_void),
-        cb_sys: extern "C" fn(*const c_void, *mut c_void, crate::OptimizationLevel),
+        #[cfg(not(feature = "llvm20-1"))] cb_sys: extern "C" fn(
+            *const c_void,
+            *mut c_void,
+            crate::OptimizationLevel,
+        ),
+        #[cfg(feature = "llvm20-1")] cb_sys: extern "C" fn(
+            *const c_void,
+            *mut c_void,
+            crate::OptimizationLevel,
+            crate::ThinOrFullLTOPhase,
+        ),
     );
 
     #[cfg(any(

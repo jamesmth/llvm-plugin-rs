@@ -5,6 +5,9 @@ use llvm_plugin::{
     OptimizationLevel, PassBuilder, PreservedAnalyses,
 };
 
+#[cfg(feature = "llvm20-1")]
+use llvm_plugin::ThinOrFullLTOPhase;
+
 #[llvm_plugin::plugin(name = "llvm_plugin", version = "0.1")]
 fn plugin_registrar(builder: &mut PassBuilder) {
     builder.add_peephole_ep_callback(|manager, opt| {
@@ -49,15 +52,23 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         feature = "llvm19-1",
         feature = "llvm20-1",
     ))]
-    builder.add_pipeline_early_simplification_ep_callback(|manager, opt| {
-        assert!(matches!(opt, OptimizationLevel::O3));
-        manager.add_pass(PipelineEarlySimpPass);
-    });
+    builder.add_pipeline_early_simplification_ep_callback(
+        |manager, opt, #[cfg(feature = "llvm20-1")] thin_or_full| {
+            assert!(matches!(opt, OptimizationLevel::O3));
+            #[cfg(feature = "llvm20-1")]
+            assert!(matches!(thin_or_full, ThinOrFullLTOPhase::None));
+            manager.add_pass(PipelineEarlySimpPass);
+        },
+    );
 
-    builder.add_optimizer_last_ep_callback(|manager, opt| {
-        assert!(matches!(opt, OptimizationLevel::O3));
-        manager.add_pass(OptimizerLastPass);
-    });
+    builder.add_optimizer_last_ep_callback(
+        |manager, opt, #[cfg(feature = "llvm20-1")] thin_or_full| {
+            assert!(matches!(opt, OptimizationLevel::O3));
+            #[cfg(feature = "llvm20-1")]
+            assert!(matches!(thin_or_full, ThinOrFullLTOPhase::None));
+            manager.add_pass(OptimizerLastPass);
+        },
+    );
 
     #[cfg(any(
         feature = "llvm15-0",
@@ -67,10 +78,14 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         feature = "llvm19-1",
         feature = "llvm20-1",
     ))]
-    builder.add_optimizer_early_ep_callback(|manager, opt| {
-        assert!(matches!(opt, OptimizationLevel::O3));
-        manager.add_pass(OptimizerEarlyPass);
-    });
+    builder.add_optimizer_early_ep_callback(
+        |manager, opt, #[cfg(feature = "llvm20-1")] thin_or_full| {
+            assert!(matches!(opt, OptimizationLevel::O3));
+            #[cfg(feature = "llvm20-1")]
+            assert!(matches!(thin_or_full, ThinOrFullLTOPhase::None));
+            manager.add_pass(OptimizerEarlyPass);
+        },
+    );
 }
 
 static mut PEEPHOLE_PASS_CALLED: u32 = 0;

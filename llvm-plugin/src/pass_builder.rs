@@ -27,10 +27,6 @@ impl PassBuilder {
     {
         let cb = Box::new(cb);
 
-        extern "C" fn callback_deleter<T>(cb: *const c_void) {
-            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
-        }
-
         extern "C" fn callback_entrypoint<T>(
             cb: *const c_void,
             name_ptr: *const u8,
@@ -70,10 +66,6 @@ impl PassBuilder {
         T: Fn(&str, &mut FunctionPassManager) -> PipelineParsing + 'static,
     {
         let cb = Box::new(cb);
-
-        extern "C" fn callback_deleter<T>(cb: *const c_void) {
-            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
-        }
 
         extern "C" fn callback_entrypoint<T>(
             cb: *const c_void,
@@ -115,10 +107,6 @@ impl PassBuilder {
     {
         let cb = Box::new(cb);
 
-        extern "C" fn callback_deleter<T>(cb: *const c_void) {
-            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
-        }
-
         extern "C" fn callback_entrypoint<T>(cb: *const c_void, manager: *mut c_void)
         where
             T: Fn(&mut ModuleAnalysisManager) + 'static,
@@ -150,10 +138,6 @@ impl PassBuilder {
         T: Fn(&mut FunctionAnalysisManager) + 'static,
     {
         let cb = Box::new(cb);
-
-        extern "C" fn callback_deleter<T>(cb: *const c_void) {
-            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
-        }
 
         extern "C" fn callback_entrypoint<T>(cb: *const c_void, manager: *mut c_void)
         where
@@ -192,10 +176,6 @@ impl PassBuilder {
         T: Fn(&mut FunctionPassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
-
-        extern "C" fn callback_deleter<T>(cb: *const c_void) {
-            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
-        }
 
         extern "C" fn callback_entrypoint<T>(
             cb: *const c_void,
@@ -236,10 +216,6 @@ impl PassBuilder {
     {
         let cb = Box::new(cb);
 
-        extern "C" fn callback_deleter<T>(cb: *const c_void) {
-            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
-        }
-
         extern "C" fn callback_entrypoint<T>(
             cb: *const c_void,
             manager: *mut c_void,
@@ -279,10 +255,6 @@ impl PassBuilder {
     {
         let cb = Box::new(cb);
 
-        extern "C" fn callback_deleter<T>(cb: *const c_void) {
-            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
-        }
-
         extern "C" fn callback_entrypoint<T>(
             cb: *const c_void,
             manager: *mut c_void,
@@ -317,6 +289,7 @@ impl PassBuilder {
     /// of the pipeline. This does not apply to 'backend' compiles (LTO and
     /// ThinLTO link-time pipelines).
     #[cfg(any(
+        doc,
         feature = "llvm12-0",
         feature = "llvm13-0",
         feature = "llvm14-0",
@@ -332,10 +305,6 @@ impl PassBuilder {
         T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
-
-        extern "C" fn callback_deleter<T>(cb: *const c_void) {
-            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
-        }
 
         extern "C" fn callback_entrypoint<T>(
             cb: *const c_void,
@@ -370,6 +339,7 @@ impl PassBuilder {
     /// This extension point allows adding optimization right after passes
     /// that do basic simplification of the input IR.
     #[cfg(any(
+        doc,
         feature = "llvm12-0",
         feature = "llvm13-0",
         feature = "llvm14-0",
@@ -378,17 +348,12 @@ impl PassBuilder {
         feature = "llvm17-0",
         feature = "llvm18-1",
         feature = "llvm19-1",
-        feature = "llvm20-1",
     ))]
     pub fn add_pipeline_early_simplification_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
-
-        extern "C" fn callback_deleter<T>(cb: *const c_void) {
-            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
-        }
 
         extern "C" fn callback_entrypoint<T>(
             cb: *const c_void,
@@ -415,6 +380,46 @@ impl PassBuilder {
         }
     }
 
+    /// Register a new callback to be triggered at the pipeline
+    /// early simplification extension point.
+    ///
+    /// # From the LLVM documentation
+    ///
+    /// This extension point allows adding optimization right after passes
+    /// that do basic simplification of the input IR.
+    #[cfg(any(doc, feature = "llvm20-1"))]
+    pub fn add_pipeline_early_simplification_ep_callback<T>(&mut self, cb: T)
+    where
+        T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
+    {
+        let cb = Box::new(cb);
+
+        extern "C" fn callback_entrypoint<T>(
+            cb: *const c_void,
+            manager: *mut c_void,
+            opt: OptimizationLevel,
+            phase: ThinOrFullLTOPhase,
+        ) where
+            T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
+        {
+            let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
+            let mut manager = unsafe { ModulePassManager::from_raw(manager) };
+
+            cb(&mut manager, opt, phase);
+
+            let _ = Box::into_raw(cb);
+        }
+
+        unsafe {
+            super::passBuilderAddPipelineEarlySimplificationEPCallback(
+                self.inner,
+                Box::into_raw(cb).cast(),
+                callback_deleter::<T>,
+                callback_entrypoint::<T>,
+            )
+        }
+    }
+
     /// Register a new callback to be triggered at the optimizer
     /// last extension point.
     ///
@@ -422,15 +427,23 @@ impl PassBuilder {
     ///
     /// This extension point allows adding passes that run after everything
     /// else.
+    #[cfg(any(
+        doc,
+        feature = "llvm11-0",
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0",
+        feature = "llvm15-0",
+        feature = "llvm16-0",
+        feature = "llvm17-0",
+        feature = "llvm18-1",
+        feature = "llvm19-1",
+    ))]
     pub fn add_optimizer_last_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
-
-        extern "C" fn callback_deleter<T>(cb: *const c_void) {
-            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
-        }
 
         extern "C" fn callback_entrypoint<T>(
             cb: *const c_void,
@@ -457,6 +470,46 @@ impl PassBuilder {
         }
     }
 
+    /// Register a new callback to be triggered at the optimizer
+    /// last extension point.
+    ///
+    /// # From the LLVM documentation
+    ///
+    /// This extension point allows adding passes that run after everything
+    /// else.
+    #[cfg(any(doc, feature = "llvm20-1"))]
+    pub fn add_optimizer_last_ep_callback<T>(&mut self, cb: T)
+    where
+        T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
+    {
+        let cb = Box::new(cb);
+
+        extern "C" fn callback_entrypoint<T>(
+            cb: *const c_void,
+            manager: *mut c_void,
+            opt: OptimizationLevel,
+            phase: ThinOrFullLTOPhase,
+        ) where
+            T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
+        {
+            let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
+            let mut manager = unsafe { ModulePassManager::from_raw(manager) };
+
+            cb(&mut manager, opt, phase);
+
+            let _ = Box::into_raw(cb);
+        }
+
+        unsafe {
+            super::passBuilderAddOptimizerLastEPCallback(
+                self.inner,
+                Box::into_raw(cb).cast(),
+                callback_deleter::<T>,
+                callback_entrypoint::<T>,
+            )
+        }
+    }
+
     /// Register a new callback to be triggered at the full LTO
     /// early extension point.
     ///
@@ -465,6 +518,7 @@ impl PassBuilder {
     /// This extension point allow adding passes that run at Link Time,
     /// before Full Link Time Optimization.
     #[cfg(any(
+        doc,
         feature = "llvm15-0",
         feature = "llvm16-0",
         feature = "llvm17-0",
@@ -477,10 +531,6 @@ impl PassBuilder {
         T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
-
-        extern "C" fn callback_deleter<T>(cb: *const c_void) {
-            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
-        }
 
         extern "C" fn callback_entrypoint<T>(
             cb: *const c_void,
@@ -515,6 +565,7 @@ impl PassBuilder {
     /// This extensions point allow adding passes that run at Link Time,
     /// after Full Link Time Optimization.
     #[cfg(any(
+        doc,
         feature = "llvm15-0",
         feature = "llvm16-0",
         feature = "llvm17-0",
@@ -527,10 +578,6 @@ impl PassBuilder {
         T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
-
-        extern "C" fn callback_deleter<T>(cb: *const c_void) {
-            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
-        }
 
         extern "C" fn callback_entrypoint<T>(
             cb: *const c_void,
@@ -565,22 +612,18 @@ impl PassBuilder {
     /// This extension point allows adding passes just before the main
     /// module-level optimization passes.
     #[cfg(any(
+        doc,
         feature = "llvm15-0",
         feature = "llvm16-0",
         feature = "llvm17-0",
         feature = "llvm18-1",
         feature = "llvm19-1",
-        feature = "llvm20-1",
     ))]
     pub fn add_optimizer_early_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
     {
         let cb = Box::new(cb);
-
-        extern "C" fn callback_deleter<T>(cb: *const c_void) {
-            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
-        }
 
         extern "C" fn callback_entrypoint<T>(
             cb: *const c_void,
@@ -606,6 +649,50 @@ impl PassBuilder {
             )
         }
     }
+
+    /// Register a new callback to be triggered at the optimizer
+    /// early extension point.
+    ///
+    /// # From the LLVM documentation
+    ///
+    /// This extension point allows adding passes just before the main
+    /// module-level optimization passes.
+    #[cfg(any(doc, feature = "llvm20-1"))]
+    pub fn add_optimizer_early_ep_callback<T>(&mut self, cb: T)
+    where
+        T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
+    {
+        let cb = Box::new(cb);
+
+        extern "C" fn callback_entrypoint<T>(
+            cb: *const c_void,
+            manager: *mut c_void,
+            opt: OptimizationLevel,
+            phase: ThinOrFullLTOPhase,
+        ) where
+            T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
+        {
+            let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
+            let mut manager = unsafe { ModulePassManager::from_raw(manager) };
+
+            cb(&mut manager, opt, phase);
+
+            let _ = Box::into_raw(cb);
+        }
+
+        unsafe {
+            super::passBuilderAddOptimizerEarlyEPCallback(
+                self.inner,
+                Box::into_raw(cb).cast(),
+                callback_deleter::<T>,
+                callback_entrypoint::<T>,
+            )
+        }
+    }
+}
+
+extern "C" fn callback_deleter<T>(cb: *const c_void) {
+    drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
 }
 
 /// Enum describing whether a pipeline parsing callback
@@ -644,6 +731,27 @@ pub enum OptimizationLevel {
     /// triggering significant incremental execution time slowdowns.
     Os,
 
-    /// This level  will optimize for code size at any and all costs.
+    /// This level will optimize for code size at any and all costs.
     Oz,
+}
+
+/// Enum for the LLVM-provided full LTO or ThinLTO optimization phases.
+#[cfg(any(doc, feature = "llvm20-1"))]
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub enum ThinOrFullLTOPhase {
+    /// No LTO/ThinLTO behavior needed.
+    None,
+
+    /// ThinLTO prelink (summary) phase.
+    ThinLTOPreLink,
+
+    /// ThinLTO postlink (backend compile) phase.
+    ThinLTOPostLink,
+
+    /// Full LTO prelink phase.
+    FullLTOPreLink,
+
+    /// Full LTO postlink (backend compile) phase.
+    FullLTOPostLink,
 }

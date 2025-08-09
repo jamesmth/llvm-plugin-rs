@@ -65,6 +65,7 @@ impl ModulePassManager {
 
     /// Returns if the pass manager contains any passes.
     #[cfg(any(
+        doc,
         feature = "llvm12-0",
         feature = "llvm13-0",
         feature = "llvm14-0",
@@ -138,6 +139,7 @@ impl FunctionPassManager {
 
     /// Returns if the pass manager contains any passes.
     #[cfg(any(
+        doc,
         feature = "llvm12-0",
         feature = "llvm13-0",
         feature = "llvm14-0",
