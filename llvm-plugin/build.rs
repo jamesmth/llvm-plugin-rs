@@ -2,7 +2,7 @@ fn main() {
     println!("cargo::rustc-check-cfg=cfg(LLVM_NOT_FOUND)");
 
     let (major, minor) = *llvm_sys::LLVM_VERSION_FROM_FEATURES;
-    println!("cargo:rustc-env=LLVM_VERSION_MAJOR={}{}", major, minor);
+    println!("cargo:rustc-env=LLVM_VERSION_MAJOR={major}{minor}");
 
     println!("cargo:rerun-if-env-changed={}", &*llvm_sys::ENV_LLVM_PREFIX);
     if llvm_sys::LLVM_CONFIG_PATH.is_none() {
@@ -82,7 +82,7 @@ mod llvm_sys {
         /// A single path to search for LLVM in (containing bin/llvm-config)
         pub static ref ENV_LLVM_PREFIX: String = {
             let (major, minor) = *LLVM_VERSION_FROM_FEATURES;
-            format!("LLVM_SYS_{}{}_PREFIX", major, minor)
+            format!("LLVM_SYS_{major}{minor}_PREFIX")
         };
     }
 
@@ -113,7 +113,7 @@ mod llvm_sys {
                     // searching.
                 }
                 // Some other error, probably a weird failure. Give up.
-                Err(e) => panic!("Failed to search PATH for llvm-config: {}", e),
+                Err(e) => panic!("Failed to search PATH for llvm-config: {e}"),
             }
         }
 
