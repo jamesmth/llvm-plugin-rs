@@ -117,6 +117,22 @@ pub use pass_manager::*;
 mod pass_builder;
 pub use pass_builder::*;
 
+/// Enum mirroring LLVM's ThinOrFullLTOPhase for unified LTO callbacks.
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub enum ThinOrFullLTOPhase {
+    /// No LTO/ThinLTO behavior needed.
+    None,
+    /// ThinLTO prelink (summary) phase.
+    ThinLTOPreLink,
+    /// ThinLTO postlink (backend compile) phase.
+    ThinLTOPostLink,
+    /// Full LTO prelink phase.
+    FullLTOPreLink,
+    /// Full LTO postlink (backend compile) phase.
+    FullLTOPostLink,
+}
+
 /// Enum specifying whether analyses on an IR unit are not preserved due
 /// to the modification of such unit by a transformation pass.
 #[repr(C)]

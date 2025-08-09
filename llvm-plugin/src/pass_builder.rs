@@ -3,6 +3,7 @@ use std::ffi::c_void;
 use super::{
     FunctionAnalysisManager, FunctionPassManager, ModuleAnalysisManager, ModulePassManager,
 };
+use crate::ThinOrFullLTOPhase;
 
 /// Main struct for registering callbacks.
 pub struct PassBuilder {
@@ -378,7 +379,6 @@ impl PassBuilder {
         feature = "llvm17-0",
         feature = "llvm18-1",
         feature = "llvm19-1",
-        feature = "llvm20-1",
     ))]
     pub fn add_pipeline_early_simplification_ep_callback<T>(&mut self, cb: T)
     where
@@ -415,6 +415,43 @@ impl PassBuilder {
         }
     }
 
+    #[cfg(feature = "llvm20-1")]
+    pub fn add_pipeline_early_simplification_ep_callback<T>(&mut self, cb: T)
+    where
+        T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
+    {
+        let cb = Box::new(cb);
+
+        extern "C" fn callback_deleter<T>(cb: *const c_void) {
+            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
+        }
+
+        extern "C" fn callback_entrypoint<T>(
+            cb: *const c_void,
+            manager: *mut c_void,
+            opt: OptimizationLevel,
+            phase: ThinOrFullLTOPhase,
+        ) where
+            T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
+        {
+            let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
+            let mut manager = unsafe { ModulePassManager::from_raw(manager) };
+
+            cb(&mut manager, opt, phase);
+
+            let _ = Box::into_raw(cb);
+        }
+
+        unsafe {
+            super::passBuilderAddPipelineEarlySimplificationEPCallback(
+                self.inner,
+                Box::into_raw(cb).cast(),
+                callback_deleter::<T>,
+                callback_entrypoint::<T>,
+            )
+        }
+    }
+
     /// Register a new callback to be triggered at the optimizer
     /// last extension point.
     ///
@@ -422,6 +459,17 @@ impl PassBuilder {
     ///
     /// This extension point allows adding passes that run after everything
     /// else.
+    #[cfg(any(
+        feature = "llvm11-0",
+        feature = "llvm12-0",
+        feature = "llvm13-0",
+        feature = "llvm14-0",
+        feature = "llvm15-0",
+        feature = "llvm16-0",
+        feature = "llvm17-0",
+        feature = "llvm18-1",
+        feature = "llvm19-1",
+     ))]
     pub fn add_optimizer_last_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel) + 'static,
@@ -443,6 +491,43 @@ impl PassBuilder {
             let mut manager = unsafe { ModulePassManager::from_raw(manager) };
 
             cb(&mut manager, opt);
+
+            let _ = Box::into_raw(cb);
+        }
+
+        unsafe {
+            super::passBuilderAddOptimizerLastEPCallback(
+                self.inner,
+                Box::into_raw(cb).cast(),
+                callback_deleter::<T>,
+                callback_entrypoint::<T>,
+            )
+        }
+    }
+
+    #[cfg(feature = "llvm20-1")]
+    pub fn add_optimizer_last_ep_callback<T>(&mut self, cb: T)
+    where
+        T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
+    {
+        let cb = Box::new(cb);
+
+        extern "C" fn callback_deleter<T>(cb: *const c_void) {
+            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
+        }
+
+        extern "C" fn callback_entrypoint<T>(
+            cb: *const c_void,
+            manager: *mut c_void,
+            opt: OptimizationLevel,
+            phase: ThinOrFullLTOPhase,
+        ) where
+            T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
+        {
+            let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
+            let mut manager = unsafe { ModulePassManager::from_raw(manager) };
+
+            cb(&mut manager, opt, phase);
 
             let _ = Box::into_raw(cb);
         }
@@ -570,7 +655,6 @@ impl PassBuilder {
         feature = "llvm17-0",
         feature = "llvm18-1",
         feature = "llvm19-1",
-        feature = "llvm20-1",
     ))]
     pub fn add_optimizer_early_ep_callback<T>(&mut self, cb: T)
     where
@@ -593,6 +677,43 @@ impl PassBuilder {
             let mut manager = unsafe { ModulePassManager::from_raw(manager) };
 
             cb(&mut manager, opt);
+
+            let _ = Box::into_raw(cb);
+        }
+
+        unsafe {
+            super::passBuilderAddOptimizerEarlyEPCallback(
+                self.inner,
+                Box::into_raw(cb).cast(),
+                callback_deleter::<T>,
+                callback_entrypoint::<T>,
+            )
+        }
+    }
+
+    #[cfg(feature = "llvm20-1")]
+    pub fn add_optimizer_early_ep_callback<T>(&mut self, cb: T)
+    where
+        T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
+    {
+        let cb = Box::new(cb);
+
+        extern "C" fn callback_deleter<T>(cb: *const c_void) {
+            drop(unsafe { Box::<T>::from_raw(cb as *mut _) })
+        }
+
+        extern "C" fn callback_entrypoint<T>(
+            cb: *const c_void,
+            manager: *mut c_void,
+            opt: OptimizationLevel,
+            phase: ThinOrFullLTOPhase,
+        ) where
+            T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
+        {
+            let cb = unsafe { Box::<T>::from_raw(cb as *mut _) };
+            let mut manager = unsafe { ModulePassManager::from_raw(manager) };
+
+            cb(&mut manager, opt, phase);
 
             let _ = Box::into_raw(cb);
         }
