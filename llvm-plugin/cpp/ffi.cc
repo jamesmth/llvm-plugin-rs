@@ -219,7 +219,7 @@ auto passBuilderAddOptimizerEarlyEPCallback(
 #endif
 
 #if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 12)
-#ifLLVM_HAS_THIN_OR_FULL_LTO_PHASE == 0
+#if LLVM_HAS_THIN_OR_FULL_LTO_PHASE == 0
 auto passBuilderAddPipelineEarlySimplificationEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
