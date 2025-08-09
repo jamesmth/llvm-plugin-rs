@@ -70,7 +70,7 @@ auto getFFIOptimizationLevel(LlvmOptLevel Opt) -> OptimizationLevel {
   return OptimizationLevel::kOz;
 }
 
-#if LLVM_HAS_THIN_OR_FULL_LTO_PHASE
+#if LLVM_HAS_THIN_OR_FULL_LTO_PHASE == 1
 inline auto getFFIThinOrFullLTOPhase(llvm::ThinOrFullLTOPhase Phase)
     -> ThinOrFullLTOPhaseFFI {
   switch (Phase) {
@@ -148,7 +148,7 @@ auto passBuilderAddFullLinkTimeOptimizationEarlyEPCallback(
 }
 #endif
 
-#ifndef LLVM_HAS_THIN_OR_FULL_LTO_PHASE
+#if LLVM_HAS_THIN_OR_FULL_LTO_PHASE == 0
 auto passBuilderAddOptimizerLastEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
@@ -183,7 +183,7 @@ auto passBuilderAddOptimizerLastEPCallback(
 #endif
 
 #if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 15)
-#ifndef LLVM_HAS_THIN_OR_FULL_LTO_PHASE
+#if LLVM_HAS_THIN_OR_FULL_LTO_PHASE == 0
 auto passBuilderAddOptimizerEarlyEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
@@ -219,7 +219,7 @@ auto passBuilderAddOptimizerEarlyEPCallback(
 #endif
 
 #if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 12)
-#ifndef LLVM_HAS_THIN_OR_FULL_LTO_PHASE
+#ifLLVM_HAS_THIN_OR_FULL_LTO_PHASE == 0
 auto passBuilderAddPipelineEarlySimplificationEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
