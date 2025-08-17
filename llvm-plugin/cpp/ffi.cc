@@ -143,29 +143,18 @@ auto passBuilderAddFullLinkTimeOptimizationEarlyEPCallback(
 }
 #endif
 
-#ifndef LLVM_HAS_THIN_OR_FULL_LTO_PHASE
 auto passBuilderAddOptimizerLastEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
     void (*Callback)(const void *, llvm::ModulePassManager &,
-                     OptimizationLevel)) -> void {
-  const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
-
-  Builder.registerOptimizerLastEPCallback(
-      [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
-                                         LlvmOptLevel Opt) {
-        const auto OptFFI = getFFIOptimizationLevel(Opt);
-        Callback(Data.get(), PassManager, OptFFI);
-      });
-}
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 20)
+                     OptimizationLevel, ThinOrFullLTOPhaseFFI)) -> void {
 #else
-auto passBuilderAddOptimizerLastEPCallback(
-    llvm::PassBuilder &Builder, const void *DataPtr,
-    void (*Deleter)(const void *),
-    void (*Callback)(const void *, llvm::ModulePassManager &, OptimizationLevel,
-                     ThinOrFullLTOPhaseFFI)) -> void {
+                     OptimizationLevel)) -> void {
+#endif
   const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
 
+#ifdef LLVM_HAS_THIN_OR_FULL_LTO_PHASE
   Builder.registerOptimizerLastEPCallback(
       [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
                                          LlvmOptLevel Opt,
@@ -174,33 +163,34 @@ auto passBuilderAddOptimizerLastEPCallback(
         const auto PhaseFFI = getFFIThinOrFullLTOPhase(Phase);
         Callback(Data.get(), PassManager, OptFFI, PhaseFFI);
       });
-}
+#else
+  Builder.registerOptimizerLastEPCallback(
+      [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
+                                         LlvmOptLevel Opt) {
+        const auto OptFFI = getFFIOptimizationLevel(Opt);
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 20)
+        const auto PhaseFFI = ThinOrFullLTOPhaseFFI::kNone;
+        Callback(Data.get(), PassManager, OptFFI, PhaseFFI);
+#else
+        Callback(Data.get(), PassManager, OptFFI);
 #endif
+      });
+#endif
+}
 
 #if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 15)
-#ifndef LLVM_HAS_THIN_OR_FULL_LTO_PHASE
 auto passBuilderAddOptimizerEarlyEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
     void (*Callback)(const void *, llvm::ModulePassManager &,
-                     OptimizationLevel)) -> void {
-  const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
-
-  Builder.registerOptimizerEarlyEPCallback(
-      [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
-                                         LlvmOptLevel Opt) {
-        const auto OptFFI = getFFIOptimizationLevel(Opt);
-        Callback(Data.get(), PassManager, OptFFI);
-      });
-}
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 20)
+                     OptimizationLevel, ThinOrFullLTOPhaseFFI)) -> void {
 #else
-auto passBuilderAddOptimizerEarlyEPCallback(
-    llvm::PassBuilder &Builder, const void *DataPtr,
-    void (*Deleter)(const void *),
-    void (*Callback)(const void *, llvm::ModulePassManager &, OptimizationLevel,
-                     ThinOrFullLTOPhaseFFI)) -> void {
+                     OptimizationLevel)) -> void {
+#endif
   const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
 
+#ifdef LLVM_HAS_THIN_OR_FULL_LTO_PHASE
   Builder.registerOptimizerEarlyEPCallback(
       [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
                                          LlvmOptLevel Opt,
@@ -209,34 +199,35 @@ auto passBuilderAddOptimizerEarlyEPCallback(
         const auto PhaseFFI = getFFIThinOrFullLTOPhase(Phase);
         Callback(Data.get(), PassManager, OptFFI, PhaseFFI);
       });
-}
+#else
+  Builder.registerOptimizerEarlyEPCallback(
+      [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
+                                         LlvmOptLevel Opt) {
+        const auto OptFFI = getFFIOptimizationLevel(Opt);
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 20)
+        const auto PhaseFFI = ThinOrFullLTOPhaseFFI::kNone;
+        Callback(Data.get(), PassManager, OptFFI, PhaseFFI);
+#else
+        Callback(Data.get(), PassManager, OptFFI);
 #endif
+      });
+#endif
+}
 #endif
 
 #if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 12)
-#ifndef LLVM_HAS_THIN_OR_FULL_LTO_PHASE
 auto passBuilderAddPipelineEarlySimplificationEPCallback(
     llvm::PassBuilder &Builder, const void *DataPtr,
     void (*Deleter)(const void *),
     void (*Callback)(const void *, llvm::ModulePassManager &,
-                     OptimizationLevel)) -> void {
-  const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
-
-  Builder.registerPipelineEarlySimplificationEPCallback(
-      [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
-                                         LlvmOptLevel Opt) {
-        const auto OptFFI = getFFIOptimizationLevel(Opt);
-        Callback(Data.get(), PassManager, OptFFI);
-      });
-}
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 20)
+                     OptimizationLevel, ThinOrFullLTOPhaseFFI)) -> void {
 #else
-auto passBuilderAddPipelineEarlySimplificationEPCallback(
-    llvm::PassBuilder &Builder, const void *DataPtr,
-    void (*Deleter)(const void *),
-    void (*Callback)(const void *, llvm::ModulePassManager &, OptimizationLevel,
-                     ThinOrFullLTOPhaseFFI)) -> void {
+                     OptimizationLevel)) -> void {
+#endif
   const auto Data = std::shared_ptr<const void>(DataPtr, Deleter);
 
+#ifdef LLVM_HAS_THIN_OR_FULL_LTO_PHASE
   Builder.registerPipelineEarlySimplificationEPCallback(
       [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
                                          LlvmOptLevel Opt,
@@ -245,8 +236,20 @@ auto passBuilderAddPipelineEarlySimplificationEPCallback(
         const auto PhaseFFI = getFFIThinOrFullLTOPhase(Phase);
         Callback(Data.get(), PassManager, OptFFI, PhaseFFI);
       });
-}
+#else
+  Builder.registerPipelineEarlySimplificationEPCallback(
+      [Data = std::move(Data), Callback](llvm::ModulePassManager &PassManager,
+                                         LlvmOptLevel Opt) {
+        const auto OptFFI = getFFIOptimizationLevel(Opt);
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 20)
+        const auto PhaseFFI = ThinOrFullLTOPhaseFFI::kNone;
+        Callback(Data.get(), PassManager, OptFFI, PhaseFFI);
+#else
+        Callback(Data.get(), PassManager, OptFFI);
 #endif
+      });
+#endif
+}
 #endif
 
 #if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 12)
