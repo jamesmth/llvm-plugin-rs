@@ -34,6 +34,7 @@ llvm17-0 = ["inkwell/llvm17-0-no-llvm-linking"]
 llvm18-1 = ["inkwell/llvm18-1-no-llvm-linking"]
 llvm19-1 = ["inkwell/llvm19-1-no-llvm-linking"]
 llvm20-1 = ["inkwell/llvm20-1-no-llvm-linking"]
+llvm21-1 = ["inkwell/llvm21-1-no-llvm-linking"]
 
 target-x86 = ["inkwell/target-x86"]
 target-arm = ["inkwell/target-arm"]
@@ -54,7 +55,7 @@ target-riscv = ["inkwell/target-riscv"]
 target-all = ["inkwell/target-all"]
 
 [dependencies]
-inkwell = { git = "https://github.com/TheDan64/inkwell", rev = "50c16a6" }
+inkwell = "0.8.0"
 llvm-plugin-macros = { path = "../llvm-plugin-macros", version = "0.2", optional = true }
 
 [build-dependencies]

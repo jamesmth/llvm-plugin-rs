@@ -20,6 +20,7 @@ llvm17-0 = ["llvm-plugin/llvm17-0"]
 llvm18-1 = ["llvm-plugin/llvm18-1"]
 llvm19-1 = ["llvm-plugin/llvm19-1"]
 llvm20-1 = ["llvm-plugin/llvm20-1"]
+llvm21-1 = ["llvm-plugin/llvm21-1"]
 
 target-x86 = ["llvm-plugin/target-x86"]
 target-arm = ["llvm-plugin/target-arm"]

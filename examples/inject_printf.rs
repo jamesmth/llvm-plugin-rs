@@ -15,6 +15,7 @@ use llvm_plugin::{
     feature = "llvm18-1",
     feature = "llvm19-1",
     feature = "llvm20-1",
+    feature = "llvm21-1",
 )))]
 macro_rules! ptr_type {
     ($cx:ident, $ty:ident) => {
@@ -28,6 +29,7 @@ macro_rules! ptr_type {
     feature = "llvm18-1",
     feature = "llvm19-1",
     feature = "llvm20-1",
+    feature = "llvm21-1",
 ))]
 macro_rules! ptr_type {
     ($cx:ident, $ty:ident) => {

@@ -27,10 +27,10 @@ When importing this crate in your `Cargo.toml`, you will need to specify the LLV
 
 ```toml
 [dependencies]
-llvm-plugin = { git = "https://github.com/jamesmth/llvm-plugin-rs", features = ["llvm20-1"] }
+llvm-plugin = { git = "https://github.com/jamesmth/llvm-plugin-rs", features = ["llvm21-1"] }
 ```
 
-Supported versions: LLVM 11-20 mapping to a cargo feature flag `llvmX-Y` where `X` and `Y` are the LLVM major and minor versions.
+Supported versions: LLVM 11-21 mapping to a cargo feature flag `llvmX-Y` where `X` and `Y` are the LLVM major and minor versions.
 
 ## Getting Started
 
