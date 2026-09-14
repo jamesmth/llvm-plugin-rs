@@ -299,6 +299,7 @@ impl PassBuilder {
         feature = "llvm18-1",
         feature = "llvm19-1",
         feature = "llvm20-1",
+        feature = "llvm21-1",
     ))]
     pub fn add_pipeline_start_ep_callback<T>(&mut self, cb: T)
     where
@@ -387,7 +388,7 @@ impl PassBuilder {
     ///
     /// This extension point allows adding optimization right after passes
     /// that do basic simplification of the input IR.
-    #[cfg(any(doc, feature = "llvm20-1"))]
+    #[cfg(any(doc, feature = "llvm20-1", feature = "llvm21-1"))]
     pub fn add_pipeline_early_simplification_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
@@ -429,7 +430,6 @@ impl PassBuilder {
     /// else.
     #[cfg(any(
         doc,
-        feature = "llvm11-0",
         feature = "llvm12-0",
         feature = "llvm13-0",
         feature = "llvm14-0",
@@ -477,7 +477,7 @@ impl PassBuilder {
     ///
     /// This extension point allows adding passes that run after everything
     /// else.
-    #[cfg(any(doc, feature = "llvm20-1"))]
+    #[cfg(any(doc, feature = "llvm20-1", feature = "llvm21-1"))]
     pub fn add_optimizer_last_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
@@ -525,6 +525,7 @@ impl PassBuilder {
         feature = "llvm18-1",
         feature = "llvm19-1",
         feature = "llvm20-1",
+        feature = "llvm21-1",
     ))]
     pub fn add_full_lto_early_ep_callback<T>(&mut self, cb: T)
     where
@@ -572,6 +573,7 @@ impl PassBuilder {
         feature = "llvm18-1",
         feature = "llvm19-1",
         feature = "llvm20-1",
+        feature = "llvm21-1",
     ))]
     pub fn add_full_lto_last_ep_callback<T>(&mut self, cb: T)
     where
@@ -657,7 +659,7 @@ impl PassBuilder {
     ///
     /// This extension point allows adding passes just before the main
     /// module-level optimization passes.
-    #[cfg(any(doc, feature = "llvm20-1"))]
+    #[cfg(any(doc, feature = "llvm20-1", feature = "llvm21-1"))]
     pub fn add_optimizer_early_ep_callback<T>(&mut self, cb: T)
     where
         T: Fn(&mut ModulePassManager, OptimizationLevel, ThinOrFullLTOPhase) + 'static,
@@ -736,7 +738,7 @@ pub enum OptimizationLevel {
 }
 
 /// Enum for the LLVM-provided full LTO or ThinLTO optimization phases.
-#[cfg(any(doc, feature = "llvm20-1"))]
+#[cfg(any(doc, feature = "llvm20-1", feature = "llvm21-1"))]
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub enum ThinOrFullLTOPhase {

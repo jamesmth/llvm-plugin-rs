@@ -5,7 +5,7 @@ use llvm_plugin::{
     OptimizationLevel, PassBuilder, PreservedAnalyses,
 };
 
-#[cfg(feature = "llvm20-1")]
+#[cfg(any(feature = "llvm20-1", feature = "llvm21-1"))]
 use llvm_plugin::ThinOrFullLTOPhase;
 
 #[llvm_plugin::plugin(name = "llvm_plugin", version = "0.1")]
@@ -35,6 +35,7 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         feature = "llvm18-1",
         feature = "llvm19-1",
         feature = "llvm20-1",
+        feature = "llvm21-1",
     ))]
     builder.add_pipeline_start_ep_callback(|manager, opt| {
         assert!(matches!(opt, OptimizationLevel::O3));
@@ -51,20 +52,21 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         feature = "llvm18-1",
         feature = "llvm19-1",
         feature = "llvm20-1",
+        feature = "llvm21-1",
     ))]
     builder.add_pipeline_early_simplification_ep_callback(
-        |manager, opt, #[cfg(feature = "llvm20-1")] thin_or_full| {
+        |manager, opt, #[cfg(any(feature = "llvm20-1", feature = "llvm21-1"))] thin_or_full| {
             assert!(matches!(opt, OptimizationLevel::O3));
-            #[cfg(feature = "llvm20-1")]
+            #[cfg(any(feature = "llvm20-1", feature = "llvm21-1"))]
             assert!(matches!(thin_or_full, ThinOrFullLTOPhase::None));
             manager.add_pass(PipelineEarlySimpPass);
         },
     );
 
     builder.add_optimizer_last_ep_callback(
-        |manager, opt, #[cfg(feature = "llvm20-1")] thin_or_full| {
+        |manager, opt, #[cfg(any(feature = "llvm20-1", feature = "llvm21-1"))] thin_or_full| {
             assert!(matches!(opt, OptimizationLevel::O3));
-            #[cfg(feature = "llvm20-1")]
+            #[cfg(any(feature = "llvm20-1", feature = "llvm21-1"))]
             assert!(matches!(thin_or_full, ThinOrFullLTOPhase::None));
             manager.add_pass(OptimizerLastPass);
         },
@@ -77,11 +79,12 @@ fn plugin_registrar(builder: &mut PassBuilder) {
         feature = "llvm18-1",
         feature = "llvm19-1",
         feature = "llvm20-1",
+        feature = "llvm21-1",
     ))]
     builder.add_optimizer_early_ep_callback(
-        |manager, opt, #[cfg(feature = "llvm20-1")] thin_or_full| {
+        |manager, opt, #[cfg(any(feature = "llvm20-1", feature = "llvm21-1"))] thin_or_full| {
             assert!(matches!(opt, OptimizationLevel::O3));
-            #[cfg(feature = "llvm20-1")]
+            #[cfg(any(feature = "llvm20-1", feature = "llvm21-1"))]
             assert!(matches!(thin_or_full, ThinOrFullLTOPhase::None));
             manager.add_pass(OptimizerEarlyPass);
         },

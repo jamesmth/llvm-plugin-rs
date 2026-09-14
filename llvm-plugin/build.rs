@@ -198,9 +198,7 @@ mod llvm_sys {
     }
 
     fn llvm_version_from_features() -> (u32, u32) {
-        if cfg!(feature = "llvm11-0") {
-            (11, 0)
-        } else if cfg!(feature = "llvm12-0") {
+        if cfg!(feature = "llvm12-0") {
             (12, 0)
         } else if cfg!(feature = "llvm13-0") {
             (13, 0)
@@ -218,6 +216,8 @@ mod llvm_sys {
             (19, 1)
         } else if cfg!(feature = "llvm20-1") {
             (20, 1)
+        } else if cfg!(feature = "llvm21-1") {
+            (21, 1)
         } else {
             panic!("Missing llvm* feature")
         }

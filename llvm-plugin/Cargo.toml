@@ -12,7 +12,7 @@ readme = "README.md"
 repository = "https://github.com/jamesmth/llvm-plugin-rs"
 
 [package.metadata.docs.rs]
-features = ["llvm15-0"]
+features = ["llvm12-0"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
@@ -24,7 +24,6 @@ macros = ["llvm-plugin-macros"]
 win-link-opt = []
 win-link-lld = []
 
-llvm11-0 = ["inkwell/llvm11-0-no-llvm-linking"]
 llvm12-0 = ["inkwell/llvm12-0-no-llvm-linking"]
 llvm13-0 = ["inkwell/llvm13-0-no-llvm-linking"]
 llvm14-0 = ["inkwell/llvm14-0-no-llvm-linking"]
@@ -34,6 +33,7 @@ llvm17-0 = ["inkwell/llvm17-0-no-llvm-linking"]
 llvm18-1 = ["inkwell/llvm18-1-no-llvm-linking"]
 llvm19-1 = ["inkwell/llvm19-1-no-llvm-linking"]
 llvm20-1 = ["inkwell/llvm20-1-no-llvm-linking"]
+llvm21-1 = ["inkwell/llvm21-1-no-llvm-linking"]
 
 target-x86 = ["inkwell/target-x86"]
 target-arm = ["inkwell/target-arm"]
@@ -54,7 +54,7 @@ target-riscv = ["inkwell/target-riscv"]
 target-all = ["inkwell/target-all"]
 
 [dependencies]
-inkwell = { git = "https://github.com/TheDan64/inkwell", rev = "50c16a6" }
+inkwell = "0.10.0"
 llvm-plugin-macros = { path = "../llvm-plugin-macros", version = "0.2", optional = true }
 
 [build-dependencies]
