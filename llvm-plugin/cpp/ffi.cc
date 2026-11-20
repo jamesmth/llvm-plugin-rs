@@ -3,12 +3,18 @@
 #include <mutex>
 #include <utility>
 
+#include <llvm/Config/llvm-config.h>
+
 #include <llvm/ADT/ArrayRef.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/PassManager.h>
 #include <llvm/Passes/PassBuilder.h>
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 21)
+#include <llvm/Plugins/PassPlugin.h>
+#else
 #include <llvm/Passes/PassPlugin.h>
+#endif
 
 #include "analysis.hh"
 #include "common.hh"
@@ -39,6 +45,21 @@ enum class ThinOrFullLTOPhaseFFI {
 };
 
 namespace {
+#if defined(LLVM_VERSION_MAJOR) && (LLVM_VERSION_MAJOR >= 21)
+auto getFFIOptimizationLevel(LlvmOptLevel Opt) -> OptimizationLevel {
+  switch (Opt) {
+  case LlvmOptLevel::O0:
+    return OptimizationLevel::kO0;
+  case LlvmOptLevel::O1:
+    return OptimizationLevel::kO1;
+  case LlvmOptLevel::O2:
+    return OptimizationLevel::kO2;
+  case LlvmOptLevel::O3:
+    return OptimizationLevel::kO3;
+  }
+  return OptimizationLevel::kO3;
+}
+#else
 auto getFFIOptimizationLevel(LlvmOptLevel Opt) -> OptimizationLevel {
   // Starting from LLVM-11, llvm::OptimizationLevel::Ox is no longer
   // an enum but a global static. Using these global statics on Windows
@@ -64,6 +85,7 @@ auto getFFIOptimizationLevel(LlvmOptLevel Opt) -> OptimizationLevel {
   }
   return OptimizationLevel::kOz;
 }
+#endif
 
 #ifdef LLVM_HAS_THIN_OR_FULL_LTO_PHASE
 inline auto getFFIThinOrFullLTOPhase(llvm::ThinOrFullLTOPhase Phase)
