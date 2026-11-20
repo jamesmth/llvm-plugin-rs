@@ -13,10 +13,16 @@ fn main() {
     let includedir = llvm_sys::llvm_config("--includedir");
 
     let mut build = cc::Build::new();
-    build
-        .cpp(true)
-        .include(includedir.trim())
-        .file("cpp/ffi.cc");
+    build.cpp(true).include(includedir.trim());
+
+    if let Some(prefix) = std::env::var_os(&*llvm_sys::ENV_LLVM_PREFIX) {
+        let build_includedir = std::path::Path::new(&prefix).join("include");
+        if build_includedir.is_dir() {
+            build.include(build_includedir);
+        }
+    }
+
+    build.file("cpp/ffi.cc");
 
     #[cfg(target_env = "msvc")]
     build.flag_if_supported("/std:c++17");
@@ -218,6 +224,8 @@ mod llvm_sys {
             (19, 1)
         } else if cfg!(feature = "llvm20-1") {
             (20, 1)
+        } else if cfg!(feature = "llvm23-1") {
+            (23, 1)
         } else {
             panic!("Missing llvm* feature")
         }

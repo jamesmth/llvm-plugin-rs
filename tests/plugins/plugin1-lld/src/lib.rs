@@ -30,7 +30,7 @@ impl LlvmModulePass for Pass {
         unsafe { CALL_COUNT += 1 };
 
         let path = if cfg!(target_os = "windows") {
-            "C:\\rust.ll".to_owned()
+            std::env::var("OLLVM_TEST_MARKER_PATH").unwrap_or_else(|_| "C:\\rust.ll".to_owned())
         } else {
             let home = std::env::var("HOME").expect("missing HOME");
             home + "/rust.ll"
